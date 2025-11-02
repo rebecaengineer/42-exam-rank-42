@@ -1,6 +1,6 @@
 # EXAM RANK 03 - PROGRESS TRACKER
 
-## ESTADO ACTUAL: 🚀 EMPEZANDO CON FILTER (Level 1)
+## ESTADO ACTUAL: 🎆 LEVEL 1 COMPLETADO - PREPARANDO LEVEL 2
 
 ---
 
@@ -8,8 +8,8 @@
 
 ### **LEVEL 1 - EJERCICIOS BÁSICOS**
 
-#### 1. **FILTER** ⏳ EN PROGRESO
-**Estado:** Implementando y practicando
+#### 1. **FILTER** ✅ COMPLETADO
+**Estado:** Implementado y funcionando
 **Conceptos necesarios:**
 - [x] Manejo de argumentos (argc/argv)
 - [x] Lectura con buffer dinámico
@@ -18,23 +18,28 @@
 - [x] Gestión de memoria dinámica
 - [x] **EJERCICIO PRÁCTICO:** Programa básico de lectura stdin
 - [x] Implementar búsqueda y reemplazo
-- [ ] Completar ejercicio filter (pruebas finales)
+- [x] Completar ejercicio filter (pruebas finales)
 
-#### 2. **FT_SCANF** ⏸️ PENDIENTE
+#### 2. **FT_SCANF** ✅ COMPLETADO
 **Conceptos necesarios:**
-- [ ] Variadic functions (va_list, va_start, va_arg, va_end)
-- [ ] Parsing de formato strings
-- [ ] Funciones de E/S (fgetc, ungetc, ferror, feof)
-- [ ] Implementación de conversores (%s, %d, %c)
-- [ ] Manejo de espacios en blanco
+- [x] Variadic functions (va_list, va_start, va_arg, va_end)
+- [x] Parsing de formato strings
+- [x] Funciones de E/S (fgetc, ungetc, ferror, feof)
+- [x] Implementación de conversores (%s, %d, %c)
+- [x] Manejo de espacios en blanco
+- [x] **EJERCICIO PRÁCTICO:** Implementación completa funcional
 
-#### 3. **BROKEN_GNL** ⏸️ PENDIENTE
+#### 3. **BROKEN_GNL** ✅ COMPLETADO
 **Conceptos necesarios:**
-- [ ] Debugging técnicas
-- [ ] Static variables
-- [ ] File descriptors
-- [ ] Buffer management
-- [ ] Memory leak detection
+- [x] Debugging técnicas
+- [x] Static variables
+- [x] File descriptors
+- [x] Buffer management
+- [x] Memory leak detection
+- [x] Tipos signed vs unsigned
+- [x] Manejo de EOF
+- [x] Gestión de buffer estático
+- [x] **EJERCICIO PRÁCTICO:** 8 errores identificados y reparados
 
 ---
 
@@ -86,9 +91,9 @@
 - **String operations:** strlen, memmem, memmove
 
 ### Próximos pasos:
-1. **AHORA:** Pruebas finales de FILTER con casos de uso variados
-2. **SIGUIENTE:** Preparar para el siguiente ejercicio FT_SCANF
-3. **DESPUÉS:** Repasar conceptos de variadic functions
+1. **AHORA:** Comenzar LEVEL 2 - Ejercicios avanzados
+2. **SIGUIENTE:** Estudiar algoritmos de recursion y backtracking
+3. **DESPUÉS:** Implementar PERMUTATIONS como primer ejercicio de Level 2
 
 ---
 
@@ -100,12 +105,26 @@
 - ✅ Creación de plan de estudio
 - ✅ Comenzando explicación de conceptos FILTER
 
-### Sesión 2 - [FECHA ACTUAL]
+### Sesión 2 - [FECHA ANTERIOR]
 - ✅ Implementación de práctica para FILTER
 - ✅ Comprensión de lectura dinámica con buffer
 - ✅ Implementación de búsqueda y reemplazo (dos métodos)
 - ✅ Creación de Makefile y documentación
-- ⏳ Prácticas adicionales con diferentes casos de uso
+- ✅ Prácticas adicionales con diferentes casos de uso
+
+### Sesión 3 - [2025-11-01]
+- ✅ Completado ejercicio BROKEN_GNL
+- ✅ Identificación de 8 errores críticos:
+  - ft_strchr: bucle infinito sin protección '\0'
+  - ft_memcpy: copia incompleta con --n > 0
+  - str_append_mem: crash con NULL pointer
+  - ft_memmove: uso incorrecto de ft_strlen vs n
+  - ft_memmove: bucle infinito con size_t unsigned
+  - get_next_line: no maneja EOF correctamente
+  - get_next_line: no actualiza tmp después de leer
+  - get_next_line: crash con tmp NULL al final
+- ✅ Creación de archivo APUNTES_BROKEN_GNL.md
+- ✅ Implementación completa en repaired_gnl_mio.c
 
 ---
 

@@ -37,6 +37,24 @@ exam-rank-03/
 - **Testing**: Carpeta `tester/` con tests específicos para examen
 - **Estado**: Completado y funcionando - pasa 9/10 tests automáticos
 
+#### broken_gnl ✅
+- **Ubicación**: `level-1/broken_gnl/`
+- **Descripción**: Detectar y reparar errores en implementación de get_next_line
+- **Funciones**: read, malloc, free, ft_strchr, ft_memcpy, ft_memmove, ft_strlen
+- **Compilación**: `gcc -Wall -Wextra -Werror broken_gnl.c -D BUFFER_SIZE=10 -o gnl`
+- **Errores identificados y reparados**: 
+  - ✅ `ft_strchr()` - Bucle infinito sin protección '\0'
+  - ✅ `ft_memcpy()` - Copia incompleta con condición --n > 0
+  - ✅ `str_append_mem()` - Crash con NULL pointer
+  - ✅ `ft_memmove()` - Uso incorrecto de ft_strlen() vs n
+  - ✅ `ft_memmove()` - Bucle infinito con size_t unsigned
+  - ✅ `get_next_line()` - No maneja EOF (read_ret == 0)
+  - ✅ `get_next_line()` - No actualiza tmp después de leer
+  - ✅ `get_next_line()` - Crash con tmp NULL al final
+- **Conceptos**: Debugging, static variables, buffer management, memory leaks, tipos signed/unsigned
+- **Archivo reparado**: `reparired/repaired_gnl_mio.c` - versión completamente funcional
+- **Estado**: Completado - todos los errores identificados y reparados
+
 ## Comandos útiles
 
 ### Compilación estándar
@@ -55,5 +73,9 @@ echo "texto" | ./programa arg
 - Manejar errores con perror()
 - Liberar memoria correctamente
 - Usar solo funciones permitidas
+- Proteger contra punteros NULL
+- Cuidado con tipos unsigned en bucles decrementales
+- Manejar EOF correctamente en read()
+- Actualizar variables de control en bucles
 
 
