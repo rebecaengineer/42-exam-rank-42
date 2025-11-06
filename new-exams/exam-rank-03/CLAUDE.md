@@ -3,10 +3,69 @@
 ## Estructura del proyecto
 ```
 exam-rank-03/
-├── level-1/
-├── level-2/
-└── exam-practice/
+├── level-1/              # Ejercicios nivel 1
+├── level-2/              # Ejercicios nivel 2
+├── rendu3/               # Soluciones completadas (copia automática)
+├── exam_progress/        # Archivos de progreso por nivel
+├── exam.sh               # Sistema de práctica principal
+└── init.sh               # Script de inicialización
 ```
+
+## Sistema de Práctica (exam.sh)
+
+### Características principales
+- **Carpeta rendu3**: Copia automática de soluciones al completar ejercicios + soluciones de referencia
+- **Tracking de progreso**: Mantiene registro de ejercicios completados por nivel
+- **Permite rehacer ejercicios**: Opción 4 permite seleccionar y repetir ejercicios completados
+- **Validación automática**: Ejecuta tests de grademe/ automáticamente
+- **Copia de headers**: Si existe .h, también se copia a rendu3
+- **Bucle de reintentos**: Permite reintentar validación sin salir del ejercicio
+- **Preparación automática**: Copia archivos de solutions/ a raíz antes de validar
+
+### Modos de práctica
+1. **Aleatorio general**: Ejercicios de todos los niveles no completados
+2. **Aleatorio por nivel**: Solo ejercicios de un nivel específico
+3. **Aleatorio de nivel**: Práctica enfocada en un nivel
+4. **Selección específica**: Elige manualmente cualquier ejercicio (incluidos completados)
+
+### Uso
+```bash
+./exam.sh
+# Opción 4: Seleccionar ejercicio específico (permite rehacer completados)
+```
+
+### Sistema de Reintentos
+Cuando trabajas en un ejercicio, tienes un menú interactivo con opciones:
+1. **Validar ejercicio** - Ejecuta los tests
+2. **Marcar como completado sin validar** - Guarda sin testear
+3. **Ver subject de nuevo** - Remuestra el enunciado
+4. **Limpiar ejercicio (empezar de cero)** - Elimina el código existente para rehacer el ejercicio
+5. **Siguiente ejercicio / Volver al menú** - Sale del ejercicio actual
+
+**Si los tests fallan**: El sistema NO te saca del ejercicio. Puedes:
+- Corregir tu código
+- Volver a validar (opción 1)
+- Repetir tantas veces como necesites hasta que pase
+
+**Para rehacer ejercicios completados**:
+- Selecciona el ejercicio con opción 4 del menú principal
+- Usa la opción 4 "Limpiar ejercicio" para eliminar el código existente
+- Empieza de cero para practicar
+- Las soluciones de referencia están siempre disponibles en `rendu3/`
+
+Esto simula el comportamiento real del examen, donde puedes reintentar hasta completar correctamente.
+
+### Soluciones de Referencia (rendu3/)
+La carpeta `rendu3/` contiene:
+- Soluciones que ya pasaron los tests
+- Material de estudio y referencia
+- Código para consultar si te atascas
+
+Ver `rendu3/README.md` para más información.
+
+### Archivos de progreso
+- `exam_progress/level1_done.txt`: Ejercicios completados de Level 1
+- `exam_progress/level2_done.txt`: Ejercicios completados de Level 2
 
 ## Ejercicios completados
 

@@ -58,19 +58,29 @@ int main (int argc, char **argv)
 	int i = 0;
 	int target_len = strlen(argv[1]);
 
-	while (result [i])
+	while (i < total_read)
 	{
-		if (strncmp(&result[i], argv[1], target_len) == 0)
+		int match = 1;
+		if (i + target_len <= total_read)
 		{
-			for (int j = 0; j < target_len; j++)
-				write (1, "*", 1);
-			i += target_len;
+			for (int k = 0; k < target_len; k++)
+			{
+				if (result[i + k] != argv[1][k])
+				{
+					match = 0;
+					break;
+				}
+			}
+			if (match)
+			{
+				for (int j = 0; j < target_len; j++)
+					write (1, "*", 1);
+				i += target_len;
+				continue;
+			}
 		}
-		else
-		{
-			write(1, &result[i], 1);
-			i++;
-		}
+		write(1, &result[i], 1);
+		i++;
 	}
 	free (result);
 	return 0;
