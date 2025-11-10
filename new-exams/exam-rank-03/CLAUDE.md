@@ -3,9 +3,10 @@
 ## Estructura del proyecto
 ```
 exam-rank-03/
-├── level-1/              # Ejercicios nivel 1
-├── level-2/              # Ejercicios nivel 2
-├── rendu3/               # Soluciones completadas (copia automática)
+├── level-1/              # Ejercicios nivel 1 (subjects, tests, grademe)
+├── level-2/              # Ejercicios nivel 2 (subjects, tests, grademe)
+├── rendu/                # Espacio de trabajo para hacer los ejercicios
+├── rendu3/               # Soluciones de referencia permanentes
 ├── exam_progress/        # Archivos de progreso por nivel
 ├── exam.sh               # Sistema de práctica principal
 └── init.sh               # Script de inicialización
@@ -14,13 +15,14 @@ exam-rank-03/
 ## Sistema de Práctica (exam.sh)
 
 ### Características principales
-- **Carpeta rendu3**: Copia automática de soluciones al completar ejercicios + soluciones de referencia
+- **Carpeta rendu/**: Espacio de trabajo donde crearás y editarás tus soluciones
+- **Carpeta rendu3/**: Soluciones de referencia permanentes (no se borran nunca)
 - **Tracking de progreso**: Mantiene registro de ejercicios completados por nivel
 - **Permite rehacer ejercicios**: Opción 4 permite seleccionar y repetir ejercicios completados
 - **Validación automática**: Ejecuta tests de grademe/ automáticamente
-- **Copia de headers**: Si existe .h, también se copia a rendu3
+- **Copia de headers**: Si existe .h, se copia automáticamente a tu espacio de trabajo
 - **Bucle de reintentos**: Permite reintentar validación sin salir del ejercicio
-- **Preparación automática**: Copia archivos de solutions/ a raíz antes de validar
+- **Preparación automática**: Crea archivos vacíos en rendu/ al seleccionar ejercicio
 
 ### Modos de práctica
 1. **Aleatorio general**: Ejercicios de todos los niveles no completados
@@ -34,34 +36,60 @@ exam-rank-03/
 # Opción 4: Seleccionar ejercicio específico (permite rehacer completados)
 ```
 
+### Flujo de trabajo
+1. **Selecciona ejercicio**: El sistema muestra el subject
+2. **Crea tu espacio de trabajo**:
+   ```bash
+   cd rendu
+   mkdir nombre_ejercicio
+   cd nombre_ejercicio
+   touch nombre_ejercicio.c
+   # Si necesitas .h: touch nombre_ejercicio.h
+   ```
+3. **Edita tu solución**: Trabaja en los archivos que creaste en `rendu/ejercicio/`
+4. **Valida**: El sistema copia tus archivos (.c y .h) al directorio del ejercicio y ejecuta los tests
+5. **Si pasa**: Tu solución se guarda en `rendu3/` como referencia permanente
+6. **Si falla**: Puedes corregir y reintentar sin límites
+
 ### Sistema de Reintentos
 Cuando trabajas en un ejercicio, tienes un menú interactivo con opciones:
-1. **Validar ejercicio** - Ejecuta los tests
+1. **Validar ejercicio** - Ejecuta los tests con tu código de rendu/
 2. **Marcar como completado sin validar** - Guarda sin testear
 3. **Ver subject de nuevo** - Remuestra el enunciado
-4. **Limpiar ejercicio (empezar de cero)** - Elimina el código existente para rehacer el ejercicio
+4. **Limpiar ejercicio (empezar de cero)** - Elimina tu código en rendu/ para reempezar
 5. **Siguiente ejercicio / Volver al menú** - Sale del ejercicio actual
 
 **Si los tests fallan**: El sistema NO te saca del ejercicio. Puedes:
-- Corregir tu código
+- Editar tu código en `rendu/ejercicio/ejercicio.c`
 - Volver a validar (opción 1)
 - Repetir tantas veces como necesites hasta que pase
 
 **Para rehacer ejercicios completados**:
 - Selecciona el ejercicio con opción 4 del menú principal
-- Usa la opción 4 "Limpiar ejercicio" para eliminar el código existente
+- Usa la opción 4 "Limpiar ejercicio" para borrar tu código en rendu/
 - Empieza de cero para practicar
 - Las soluciones de referencia están siempre disponibles en `rendu3/`
 
 Esto simula el comportamiento real del examen, donde puedes reintentar hasta completar correctamente.
 
-### Soluciones de Referencia (rendu3/)
-La carpeta `rendu3/` contiene:
-- Soluciones que ya pasaron los tests
-- Material de estudio y referencia
-- Código para consultar si te atascas
+### Carpetas importantes
 
-Ver `rendu3/README.md` para más información.
+#### rendu/ (Espacio de trabajo)
+- Aquí trabajas en tus ejercicios
+- Se crea automáticamente al seleccionar un ejercicio
+- Puedes limpiar y rehacer ejercicios
+- **No se commitea a git** (está en .gitignore)
+
+#### rendu3/ (Soluciones de referencia)
+- Soluciones que ya pasaron los tests
+- Material de estudio y referencia permanente
+- Código para consultar si te atascas
+- **Nunca se borra**
+
+#### level-1/ y level-2/
+- Contienen subjects, tests y grademe/
+- **NO contienen carpetas solutions/** (se eliminaron)
+- Solo material de enunciados y validación
 
 ### Archivos de progreso
 - `exam_progress/level1_done.txt`: Ejercicios completados de Level 1

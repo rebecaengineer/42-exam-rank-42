@@ -12,11 +12,13 @@ CYAN='\033[0;36m'
 EXAM_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$EXAM_DIR")"
 PROGRESS_DIR="$EXAM_DIR/exam_progress"
-RENDU_DIR="$EXAM_DIR/rendu3"
+RENDU_DIR="$EXAM_DIR/rendu"              # Carpeta de trabajo para ejercicios
+RENDU3_DIR="$EXAM_DIR/rendu3"            # Soluciones de referencia permanentes
 
 # Crear directorios necesarios
 mkdir -p "$PROGRESS_DIR"
 mkdir -p "$RENDU_DIR"
+mkdir -p "$RENDU3_DIR"
 
 # Archivos para almacenar ejercicios completados por nivel
 LEVEL1_DONE="$PROGRESS_DIR/level1_done.txt"
@@ -30,7 +32,14 @@ get_source_file() {
     local exercise_name="$1"
     local exercise_path="$2"
 
-    # Buscar archivos .c en el directorio del ejercicio (excluyendo subdirectorios)
+    # Primero buscar en la carpeta de trabajo rendu/
+    local rendu_file="$RENDU_DIR/${exercise_name}/${exercise_name}.c"
+    if [ -f "$rendu_file" ]; then
+        echo "$rendu_file"
+        return 0
+    fi
+
+    # Si no existe en rendu/, buscar en el directorio del ejercicio
     local c_files=$(find "$exercise_path" -maxdepth 1 -name "*.c" 2>/dev/null)
 
     if [ -z "$c_files" ]; then
@@ -52,26 +61,19 @@ get_source_file() {
         return 0
     fi
 
-    # Si hay múltiples archivos, buscar en solutions/
-    local solution_file="$exercise_path/solutions/${exercise_name}.c"
-    if [ -f "$solution_file" ]; then
-        echo "$solution_file"
-        return 0
-    fi
-
     # Retornar el primer archivo encontrado
     echo "$c_files" | head -n 1
     return 0
 }
 
-# Función para copiar solución a rendu3
-copy_to_rendu() {
+# Función para copiar solución completada a rendu3 (soluciones de referencia)
+copy_to_rendu3() {
     local exercise_name="$1"
     local exercise_path="$2"
 
     # Crear directorio en rendu3
-    local rendu_exercise_dir="$RENDU_DIR/$exercise_name"
-    mkdir -p "$rendu_exercise_dir"
+    local rendu3_exercise_dir="$RENDU3_DIR/$exercise_name"
+    mkdir -p "$rendu3_exercise_dir"
 
     # Obtener archivo source principal
     local source_file=$(get_source_file "$exercise_name" "$exercise_path")
@@ -82,7 +84,7 @@ copy_to_rendu() {
     fi
 
     # Copiar archivo a rendu3
-    local dest_file="$rendu_exercise_dir/${exercise_name}.c"
+    local dest_file="$rendu3_exercise_dir/${exercise_name}.c"
     cp "$source_file" "$dest_file" 2>/dev/null
 
     if [ $? -eq 0 ]; then
@@ -91,7 +93,7 @@ copy_to_rendu() {
         # Copiar también archivos .h si existen
         local header_file="${source_file%.c}.h"
         if [ -f "$header_file" ]; then
-            cp "$header_file" "$rendu_exercise_dir/" 2>/dev/null
+            cp "$header_file" "$rendu3_exercise_dir/" 2>/dev/null
             echo -e "${GREEN}✓ Header copiado a: rendu3/$exercise_name/$(basename "$header_file")${NC}"
         fi
 
@@ -102,32 +104,7 @@ copy_to_rendu() {
     fi
 }
 
-# Función para preparar archivos para validación
-prepare_exercise_files() {
-    local exercise_name="$1"
-    local exercise_path="$2"
-
-    # Obtener archivo source principal
-    local source_file=$(get_source_file "$exercise_name" "$exercise_path")
-
-    if [ -z "$source_file" ] || [ ! -f "$source_file" ]; then
-        return 1
-    fi
-
-    # Si el archivo está en solutions/, copiarlo a la raíz del ejercicio
-    if [[ "$source_file" == *"/solutions/"* ]]; then
-        local dest_file="$exercise_path/${exercise_name}.c"
-        cp "$source_file" "$dest_file" 2>/dev/null
-
-        # Copiar también el header si existe
-        local header_file="${source_file%.c}.h"
-        if [ -f "$header_file" ]; then
-            cp "$header_file" "$exercise_path/" 2>/dev/null
-        fi
-    fi
-
-    return 0
-}
+# Función eliminada - el usuario debe crear su estructura en rendu/
 
 # Función para validar ejercicio con test específico
 validate_exercise() {
@@ -150,8 +127,33 @@ validate_exercise() {
         return 1
     fi
 
-    # Preparar archivos para validación (copiar de solutions/ si es necesario)
-    prepare_exercise_files "$exercise_name" "$absolute_path"
+    # Verificar que existe directorio del ejercicio en rendu/
+    local rendu_exercise_dir="$RENDU_DIR/${exercise_name}"
+    if [ ! -d "$rendu_exercise_dir" ]; then
+        echo -e "${RED}Error: No existe la carpeta rendu/$exercise_name/${NC}"
+        echo -e "${YELLOW}Debes crear tu espacio de trabajo:${NC}"
+        echo -e "${CYAN}  cd rendu${NC}"
+        echo -e "${CYAN}  mkdir $exercise_name${NC}"
+        echo -e "${CYAN}  cd $exercise_name${NC}"
+        echo -e "${CYAN}  touch $exercise_name.c${NC}"
+        cd "$original_dir"
+        return 1
+    fi
+
+    # Verificar que existe archivo .c en rendu/
+    local rendu_file="$rendu_exercise_dir/${exercise_name}.c"
+    if [ ! -f "$rendu_file" ]; then
+        echo -e "${RED}Error: No se encontró el archivo rendu/$exercise_name/${exercise_name}.c${NC}"
+        echo -e "${YELLOW}Debes crear tu archivo de solución:${NC}"
+        echo -e "${CYAN}  cd rendu/$exercise_name${NC}"
+        echo -e "${CYAN}  touch $exercise_name.c${NC}"
+        cd "$original_dir"
+        return 1
+    fi
+
+    # Copiar todos los archivos .c y .h de rendu/ejercicio/ al directorio del ejercicio para testing
+    cp "$rendu_exercise_dir"/*.c "$absolute_path/" 2>/dev/null
+    cp "$rendu_exercise_dir"/*.h "$absolute_path/" 2>/dev/null
 
     # Buscar script de test en grademe/
     local test_script="$absolute_path/grademe/test.sh"
@@ -278,9 +280,13 @@ show_subject() {
     echo -e "${CYAN}Subject para: ${YELLOW}$exercise_name${NC}"
     echo -e "${BLUE}=======================================================================${NC}"
 
-    # Buscar archivo subject
+    # Buscar archivo subject (preferencia: español > inglés > sin extensión)
     local subject_file=""
-    if [ -f "$exercise_path/subject.txt" ]; then
+    if [ -f "$exercise_path/subject-es.txt" ]; then
+        subject_file="$exercise_path/subject-es.txt"
+    elif [ -f "$exercise_path/subject-en.txt" ]; then
+        subject_file="$exercise_path/subject-en.txt"
+    elif [ -f "$exercise_path/subject.txt" ]; then
         subject_file="$exercise_path/subject.txt"
     elif [ -f "$exercise_path/subject.en.txt" ]; then
         subject_file="$exercise_path/subject.en.txt"
@@ -293,8 +299,9 @@ show_subject() {
     else
         echo -e "${RED}No se encontró archivo subject para $exercise_name${NC}"
         echo -e "${YELLOW}Se buscó en:${NC}"
+        echo -e "  - $exercise_path/subject-es.txt"
+        echo -e "  - $exercise_path/subject-en.txt"
         echo -e "  - $exercise_path/subject.txt"
-        echo -e "  - $exercise_path/subject.en.txt"
         echo -e "  - $exercise_path/subject"
     fi
 
@@ -399,7 +406,7 @@ practice_exercises() {
                             # Validar ejercicio
                             if validate_exercise "$selected_exercise" "$exercise_path"; then
                                 # Copiar solución a rendu3
-                                copy_to_rendu "$selected_exercise" "$exercise_path"
+                                copy_to_rendu3 "$selected_exercise" "$exercise_path"
 
                                 # Marcar como completado
                                 mark_as_completed "$selected_exercise" "$selected_level"
@@ -416,7 +423,7 @@ practice_exercises() {
                             ;;
                         2)
                             # Marcar como completado sin validar
-                            copy_to_rendu "$selected_exercise" "$exercise_path"
+                            copy_to_rendu3 "$selected_exercise" "$exercise_path"
                             mark_as_completed "$selected_exercise" "$selected_level"
                             echo -e "${YELLOW}Ejercicio marcado como completado sin validación.${NC}"
                             echo -e "${YELLOW}Presiona ENTER para continuar...${NC}"
@@ -433,13 +440,12 @@ practice_exercises() {
                             echo -e "${YELLOW}¿Estás seguro de que quieres limpiar este ejercicio? (s/N)${NC}"
                             read -p "Respuesta: " confirm
                             if [[ "$confirm" =~ ^[Ss]$ ]]; then
-                                local absolute_path="$EXAM_DIR/$exercise_path"
-                                # Eliminar archivos .c y .h en la raíz del ejercicio (no en solutions/)
-                                rm -f "$absolute_path"/*.c "$absolute_path"/*.h 2>/dev/null
-                                # Eliminar también binarios compilados
-                                rm -f "$absolute_path"/"$selected_exercise" 2>/dev/null
+                                # Eliminar carpeta completa en rendu/
+                                rm -rf "$RENDU_DIR/$selected_exercise" 2>/dev/null
                                 echo -e "${GREEN}✓ Ejercicio limpiado. Puedes empezar de cero.${NC}"
-                                echo -e "${CYAN}Crea tu archivo: $exercise_path/${selected_exercise}.c${NC}"
+                                echo -e "${CYAN}Crea tu espacio de trabajo:${NC}"
+                                echo -e "${CYAN}  cd rendu && mkdir $selected_exercise && cd $selected_exercise${NC}"
+                                echo -e "${CYAN}  touch $selected_exercise.c${NC}"
                             else
                                 echo -e "${CYAN}Limpieza cancelada.${NC}"
                             fi
@@ -521,7 +527,7 @@ practice_level_randomly() {
                             # Validar ejercicio
                             if validate_exercise "$selected_exercise" "$exercise_path"; then
                                 # Copiar solución a rendu3
-                                copy_to_rendu "$selected_exercise" "$exercise_path"
+                                copy_to_rendu3 "$selected_exercise" "$exercise_path"
 
                                 # Marcar como completado
                                 mark_as_completed "$selected_exercise" "$level"
@@ -538,7 +544,7 @@ practice_level_randomly() {
                             ;;
                         2)
                             # Marcar como completado sin validar
-                            copy_to_rendu "$selected_exercise" "$exercise_path"
+                            copy_to_rendu3 "$selected_exercise" "$exercise_path"
                             mark_as_completed "$selected_exercise" "$level"
                             echo -e "${YELLOW}Ejercicio marcado como completado sin validación.${NC}"
                             echo -e "${YELLOW}Presiona ENTER para continuar...${NC}"
@@ -555,13 +561,12 @@ practice_level_randomly() {
                             echo -e "${YELLOW}¿Estás seguro de que quieres limpiar este ejercicio? (s/N)${NC}"
                             read -p "Respuesta: " confirm
                             if [[ "$confirm" =~ ^[Ss]$ ]]; then
-                                local absolute_path="$EXAM_DIR/$exercise_path"
-                                # Eliminar archivos .c y .h en la raíz del ejercicio (no en solutions/)
-                                rm -f "$absolute_path"/*.c "$absolute_path"/*.h 2>/dev/null
-                                # Eliminar también binarios compilados
-                                rm -f "$absolute_path"/"$selected_exercise" 2>/dev/null
+                                # Eliminar carpeta completa en rendu/
+                                rm -rf "$RENDU_DIR/$selected_exercise" 2>/dev/null
                                 echo -e "${GREEN}✓ Ejercicio limpiado. Puedes empezar de cero.${NC}"
-                                echo -e "${CYAN}Crea tu archivo: $exercise_path/${selected_exercise}.c${NC}"
+                                echo -e "${CYAN}Crea tu espacio de trabajo:${NC}"
+                                echo -e "${CYAN}  cd rendu && mkdir $selected_exercise && cd $selected_exercise${NC}"
+                                echo -e "${CYAN}  touch $selected_exercise.c${NC}"
                             else
                                 echo -e "${CYAN}Limpieza cancelada.${NC}"
                             fi
@@ -728,7 +733,7 @@ select_specific_exercise() {
                     # Validar ejercicio
                     if validate_exercise "$selected_exercise" "$exercise_path"; then
                         # Copiar solución a rendu3
-                        copy_to_rendu "$selected_exercise" "$exercise_path"
+                        copy_to_rendu3 "$selected_exercise" "$exercise_path"
 
                         # Marcar como completado
                         mark_as_completed "$selected_exercise" "$level"
@@ -745,7 +750,7 @@ select_specific_exercise() {
                     ;;
                 2)
                     # Marcar como completado sin validar
-                    copy_to_rendu "$selected_exercise" "$exercise_path"
+                    copy_to_rendu3 "$selected_exercise" "$exercise_path"
                     mark_as_completed "$selected_exercise" "$level"
                     echo -e "${YELLOW}Ejercicio marcado como completado sin validación.${NC}"
                     echo -e "${YELLOW}Presiona ENTER para volver al menú principal...${NC}"
@@ -761,13 +766,10 @@ select_specific_exercise() {
                     echo -e "${YELLOW}¿Estás seguro de que quieres limpiar este ejercicio? (s/N)${NC}"
                     read -p "Respuesta: " confirm
                     if [[ "$confirm" =~ ^[Ss]$ ]]; then
-                        local absolute_path="$EXAM_DIR/$exercise_path"
-                        # Eliminar archivos .c y .h en la raíz del ejercicio (no en solutions/)
-                        rm -f "$absolute_path"/*.c "$absolute_path"/*.h 2>/dev/null
-                        # Eliminar también binarios compilados
-                        rm -f "$absolute_path"/"$selected_exercise" 2>/dev/null
+                        # Eliminar archivos en rendu/
+                        rm -f "$RENDU_DIR/$selected_exercise"/*.c "$RENDU_DIR/$selected_exercise"/*.h 2>/dev/null
                         echo -e "${GREEN}✓ Ejercicio limpiado. Puedes empezar de cero.${NC}"
-                        echo -e "${CYAN}Crea tu archivo: $exercise_path/${selected_exercise}.c${NC}"
+                        echo -e "${CYAN}Trabaja en: rendu/$selected_exercise/${selected_exercise}.c${NC}"
                     else
                         echo -e "${CYAN}Limpieza cancelada.${NC}"
                     fi
