@@ -1,3 +1,8 @@
+/******************
+ * Algoritmo normal
+ */
+
+
 #include "powerset.h"
 
 void print_subset(int *subset, int subset_size)
