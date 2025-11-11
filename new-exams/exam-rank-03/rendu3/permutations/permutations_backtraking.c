@@ -1,5 +1,50 @@
 #include "permutations_backtraking.h"
 
+void perm(int *cnt, int n, int pos, char *buf)
+{
+    if (pos == n)
+    {
+        buf[n] = '\0';
+        puts(buf);
+        return;
+    }
+    
+    for (int c = 0; c < 256; c++)
+    {
+        if (cnt[c])
+        {
+            buf[pos] = c;
+            cnt[c]--;
+            perm(cnt, n, pos + 1, buf);
+            cnt[c]++;  // Backtrack
+        }
+    }
+}
+
+int main(int ac, char **av)
+{
+    if (ac != 2 || !av[1][0])
+        return (0);
+    
+    int cnt[256] = {0};
+    int n = 0;
+    
+    while (av[1][n])
+        cnt[(unsigned char)av[1][n++]]++;
+    
+    char *buf = malloc(n + 1);
+    if (!buf)
+        return (1);
+    
+    perm(cnt, n, 0, buf);
+    free(buf);
+    return (0);
+}
+
+
+
+
+
 /************************
  * Generación recurasiva:
  * cnt: Array de frecuencias (cuántos de cada carácter quedan)
@@ -7,6 +52,7 @@
  * pos: Posición actual que estamos llenando
  * buf: Buffer donde construimos la permutación
  ******************************************************/
+/*
 int	ft_strlen(char *str)
 {
 	int	len;
@@ -65,3 +111,4 @@ int	main(int ac, char **av)
 	}
 	return (0);
 }
+*/
