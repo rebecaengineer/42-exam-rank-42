@@ -38,9 +38,9 @@ int main (int argc, char **argv)
 		
 		// 4. Copia datos nuevos de temp a la posición correcta de result
 		memmove (result + total_read, temp, bytes);	
-		total_read += bytes;						// Actualiza total_read
-		result [total_read] = '\0';					// Añade terminador nulo
-		}
+		total_read += bytes;			// Actualiza total_read
+		result [total_read] = '\0';		// Añade terminador nulo
+	}
 
 		// 5. Verificar errores
 		if (bytes < 0)								// (error de lectura)

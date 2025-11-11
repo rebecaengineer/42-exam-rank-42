@@ -5,7 +5,11 @@ realloc, free, printf, fprintf, stdout, stderr, perror
 --------------------------------------------------------------------------------
 Escribe un programa que tome un solo argumento y solo uno.
 
-Tu programa debe leer desde la entrada estándar (stdin) y escribir todo el contenido leído en la salida estándar (stdout), excepto que cada ocurrencia de s debe ser reemplazada por ‘*’ (tantos asteriscos como la longitud de s). Tu programa será probado con tamaños de búfer aleatorios, usando una función read personalizada. Por lo tanto, el búfer definido en tu programa se llenará con un número diferente de caracteres en cada llamada.
+Tu programa debe leer desde la entrada estándar (stdin) y escribir todo el contenido leído en la
+salida estándar (stdout), excepto que cada ocurrencia de s debe ser reemplazada por ‘*’ 
+(tantos asteriscos como la longitud de s). Tu programa será probado con tamaños de búfer aleatorios, 
+usando una función read personalizada. Por lo tanto, el búfer definido en tu programa se llenará con
+un número diferente de caracteres en cada llamada.
 
 Por ejemplo:
 

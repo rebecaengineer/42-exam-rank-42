@@ -14,13 +14,13 @@ echo -e "${YELLOW}=== TESTING BROKEN_GNL ===${NC}"
 rm -f gnl_test test_file.txt
 
 # Verificar que existen los archivos necesarios
-if [ ! -f "broken_gnl.c" ]; then
-    echo -e "${RED}❌ Error: broken_gnl.c no encontrado${NC}"
+if [ ! -f "get_next_line.c" ]; then
+    echo -e "${RED}❌ Error: get_next_line.c no encontrado${NC}"
     exit 1
 fi
 
-if [ ! -f "broken_gnl.h" ]; then
-    echo -e "${RED}❌ Error: broken_gnl.h no encontrado${NC}"
+if [ ! -f "get_next_line.h" ]; then
+    echo -e "${RED}❌ Error: get_next_line.h no encontrado${NC}"
     exit 1
 fi
 
@@ -30,7 +30,7 @@ cat > test_main.c << 'EOF'
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "broken_gnl.h"
+#include "get_next_line.h"
 
 int main(void)
 {
@@ -83,10 +83,10 @@ int main(void)
 EOF
 
 # Compilar
-echo -e "${YELLOW}Compilando broken_gnl.c...${NC}"
-if ! gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 test_main.c broken_gnl.c -o gnl_test 2>/dev/null; then
+echo -e "${YELLOW}Compilando get_next_line.c...${NC}"
+if ! gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 test_main.c get_next_line.c -o gnl_test 2>/dev/null; then
     echo -e "${RED}❌ Error de compilación${NC}"
-    gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 test_main.c broken_gnl.c -o gnl_test
+    gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 test_main.c get_next_line.c -o gnl_test
     rm -f test_main.c
     exit 1
 fi

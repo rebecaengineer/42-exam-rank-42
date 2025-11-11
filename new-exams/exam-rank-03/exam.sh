@@ -141,12 +141,20 @@ validate_exercise() {
     fi
 
     # Verificar que existe archivo .c en rendu/
+    # Caso especial: broken_GNL usa get_next_line.c en vez de broken_GNL.c
     local rendu_file="$rendu_exercise_dir/${exercise_name}.c"
+    local expected_filename="${exercise_name}.c"
+
+    if [ "$exercise_name" = "broken_GNL" ]; then
+        rendu_file="$rendu_exercise_dir/get_next_line.c"
+        expected_filename="get_next_line.c"
+    fi
+
     if [ ! -f "$rendu_file" ]; then
-        echo -e "${RED}Error: No se encontró el archivo rendu/$exercise_name/${exercise_name}.c${NC}"
+        echo -e "${RED}Error: No se encontró el archivo rendu/$exercise_name/$expected_filename${NC}"
         echo -e "${YELLOW}Debes crear tu archivo de solución:${NC}"
         echo -e "${CYAN}  cd rendu/$exercise_name${NC}"
-        echo -e "${CYAN}  touch $exercise_name.c${NC}"
+        echo -e "${CYAN}  touch $expected_filename${NC}"
         cd "$original_dir"
         return 1
     fi
