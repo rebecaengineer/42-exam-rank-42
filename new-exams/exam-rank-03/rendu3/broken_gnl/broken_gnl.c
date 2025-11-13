@@ -104,21 +104,22 @@ void *ft_memmove(void *dest, const void *src, size_t n)
 char	*get_next_line(int fd)
 {
 	static char	b[BUFFER_SIZE + 1] = "";
+
 	char	*ret = NULL;
 
 	char	*tmp = ft_strchr(b, '\n');  //pasamos el buffer y busca '/n'
                                         //Si encuentra '\n', tmp apunta a esa posición, sino tmp=NULL.
 	while (!tmp)
 	{
-		if (!str_append_str(&ret, b))
+		if (!str_append_str(&ret, b)) 			// añade el contenido actual de b a ret.
 			return (NULL);
    
-		int	read_ret = read(fd, b, BUFFER_SIZE); //read() pone los datos leídos en b
+		int	read_ret = read(fd, b, BUFFER_SIZE); //read() lee fd BUFFER_SIZE bytes y los guarda en b.
 		if (read_ret == -1)
 			return (NULL);
         if (read_ret == 0)                      // -> Falta valorer si hay EOF (fin de archivo)
             break;
-		b[read_ret] = 0;                        //añade el terminador '\0' al final
+		b[read_ret] = 0;                        // añade el terminador '\0' al final
         tmp = ft_strchr(b, '\n');				// -> Falta esta linea (actualización)
     }
     

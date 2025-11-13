@@ -106,6 +106,40 @@ copy_to_rendu3() {
 
 # Función eliminada - el usuario debe crear su estructura en rendu/
 
+# Función para preguntar si hay tareas pendientes antes de validar
+pre_validation_check() {
+    echo
+    echo -e "${YELLOW}=======================================================================${NC}"
+    echo -e "${YELLOW}Antes de validar (grademe) ¿necesitas hacer algo?${NC}"
+    echo -e "${YELLOW}=======================================================================${NC}"
+    echo
+
+    while true; do
+        read -p "> " user_command
+
+        # Si está vacío, salir del bucle
+        if [ -z "$user_command" ]; then
+            echo -e "${GREEN}Continuando con la validación...${NC}"
+            break
+        fi
+
+        # Ejecutar el comando
+        echo -e "${CYAN}Ejecutando: ${YELLOW}$user_command${NC}"
+        eval "$user_command"
+
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✓ Comando ejecutado correctamente${NC}"
+        else
+            echo -e "${RED}✗ Comando falló${NC}"
+        fi
+
+        echo
+        echo -e "${CYAN}¿Algún otro comando? (o ENTER para continuar con la validación)${NC}"
+    done
+
+    echo
+}
+
 # Función para validar ejercicio con test específico
 validate_exercise() {
     local exercise_name="$1"
@@ -158,6 +192,9 @@ validate_exercise() {
         cd "$original_dir"
         return 1
     fi
+
+    # NUEVA FUNCIONALIDAD: Preguntar si hay tareas pendientes antes de validar
+    pre_validation_check
 
     # Copiar todos los archivos .c y .h de rendu/ejercicio/ al directorio del ejercicio para testing
     cp "$rendu_exercise_dir"/*.c "$absolute_path/" 2>/dev/null
@@ -720,6 +757,23 @@ select_specific_exercise() {
         local exercise_path="level-$level/$selected_exercise"
 
         echo -e "${YELLOW}Ejercicio seleccionado: $selected_exercise${NC}"
+
+        # Si el ejercicio está completado, preguntar si quiere limpiarlo
+        if is_exercise_completed "$selected_exercise" "$level"; then
+            echo
+            echo -e "${GREEN}Este ejercicio ya está completado ✓${NC}"
+            echo -e "${YELLOW}¿Limpiar ejercicio para empezar de 0? (s/N)${NC}"
+            read -p "Respuesta: " clean_confirm
+
+            if [[ "$clean_confirm" =~ ^[Ss]$ ]]; then
+                # Eliminar carpeta completa en rendu/
+                rm -rf "$RENDU_DIR/$selected_exercise" 2>/dev/null
+                echo -e "${GREEN}✓ Ejercicio limpiado en rendu/$selected_exercise/${NC}"
+            else
+                echo -e "${CYAN}Operación cancelada. Volviendo al menú principal...${NC}"
+                return
+            fi
+        fi
 
         # Mostrar subject
         show_subject "$selected_exercise" "$exercise_path"
