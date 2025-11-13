@@ -8,6 +8,8 @@ int match_space(FILE *f)
     while ( (c = fgetc (f)) != EOF && isspace(c)) { }
     if (c != EOF)
         ungetc(c, f);   //Devuelvo el caracter no-espacio.
+	else 
+		return -1;
     return (0);
 }
 
@@ -23,7 +25,7 @@ int match_char(FILE *f, char c)
 int scan_char(FILE *f, va_list ap)
 {
 	char *ptr = va_arg(ap, char*);  // Obtener dirección donde guardar
-    int c = fgetc(f);               // Leer carácter (validos de 0-255 y -1 que es EOF-error/fin)
+    int c = fgetc(f);               // Leer carácter (validos de 0-255 (ASCII) y -1 que es EOF-error/fin)
 									// c puede ser 'A' (65) o EOF (-1)
     if (c == EOF)                   // Si c == -1
 		return 0;                   // .... termina (no hay más carácteres)
@@ -36,25 +38,32 @@ int scan_int(FILE *f, va_list ap)
 {
     int *ptr = va_arg(ap, int*);		//obtenemos el puntero destino.
     int result = 0;						//número final.
+	int sign = 1;
 	int c = fgetc(f);					//lee ('1', '-', 'a', etc)
 	
-	// El primer caracter, si no es un dígito
-      if (!isdigit(c)) 
+	if (c == '-' || c == '+') 
+    {
+        if (c == '-')
+            sign = -1;
+        c = fgetc(f);       // Leer siguiente carácter
+    }
+	
+      if (!isdigit(c)) 		// Si no es un dígito
 	  {
           ungetc(c, f);		// "Devuelve" el carácter al archivo para que otro lo lea
           return 0;			// indica que es un fallo (no es un digito)
       }
 
-	// Bucle: construir número dígito a dígito
-      while (isdigit(c)) 
+	
+      while (isdigit(c))    // Bucle: construir número dígito a dígito
 	  {
           result = result * 10 + (c - '0');  // Agregar dígito
           c = fgetc(f);						// lee el siguiente caracter (c = num actual y el cursor se pone en el siguiente caracter automáticamente)
       }
 	
-	ungetc(c, f);  		// Devolver último carácter no-dígito, para la siguiente lectura, por si se necesita en otro sitio.
-	*ptr = result;		//guarda el núm final en la dirección que nos dio el usuario
-      return 1;			// éxito.
+	ungetc(c, f);  				// Devolver último carácter no-dígito, para la siguiente lectura, por si se necesita en otro sitio.
+	*ptr = result * sign;		//guarda el núm final en la dirección que nos dio el usuario
+      return 1;					// éxito.
 }
 
 int scan_string(FILE *f, va_list ap)
@@ -159,13 +168,12 @@ int main ()
 	printf("Resultado: %d %c %s", num, letra, palabra);
 	return 0;
 }
-*//*
+*/
 int main() {
       int n;
       char c;
-      char s[100];
+      char s [100] = 0;
       ft_scanf("%d %c %s", &n, &c, s);
       printf("%d %c %s\n", n, c, s);
       return 0;
   }
-*/

@@ -106,37 +106,48 @@ copy_to_rendu3() {
 
 # Función eliminada - el usuario debe crear su estructura en rendu/
 
-# Función para preguntar si hay tareas pendientes antes de validar
+# Función para recordatorio de tareas antes de validar (NO EJECUTA COMANDOS)
 pre_validation_check() {
     echo
     echo -e "${YELLOW}=======================================================================${NC}"
-    echo -e "${YELLOW}Antes de validar (grademe) ¿necesitas hacer algo?${NC}"
+    echo -e "${YELLOW}RECORDATORIO: ¿Qué necesitas hacer antes de validar?${NC}"
     echo -e "${YELLOW}=======================================================================${NC}"
     echo
+
+    local reminder_list=()
 
     while true; do
         read -p "> " user_command
 
         # Si está vacío, salir del bucle
         if [ -z "$user_command" ]; then
-            echo -e "${GREEN}Continuando con la validación...${NC}"
             break
         fi
 
-        # Ejecutar el comando
-        echo -e "${CYAN}Ejecutando: ${YELLOW}$user_command${NC}"
-        eval "$user_command"
-
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✓ Comando ejecutado correctamente${NC}"
-        else
-            echo -e "${RED}✗ Comando falló${NC}"
-        fi
+        # Guardar el comando como recordatorio (NO ejecutarlo)
+        reminder_list+=("$user_command")
+        echo -e "${CYAN}✓ Recordatorio añadido: ${YELLOW}$user_command${NC}"
+        echo -e "${RED}   (NO ejecutado - solo recordatorio)${NC}"
 
         echo
-        echo -e "${CYAN}¿Algún otro comando? (o ENTER para continuar con la validación)${NC}"
+        echo -e "${CYAN}¿Algún otro recordatorio? (o ENTER para continuar con la validación)${NC}"
     done
 
+    # Mostrar resumen de recordatorios si hay alguno
+    if [ ${#reminder_list[@]} -gt 0 ]; then
+        echo
+        echo -e "${YELLOW}=======================================================================${NC}"
+        echo -e "${YELLOW}RECORDATORIOS GUARDADOS (ejecutar manualmente después):${NC}"
+        echo -e "${YELLOW}=======================================================================${NC}"
+        for cmd in "${reminder_list[@]}"; do
+            echo -e "${CYAN}  • $cmd${NC}"
+        done
+        echo -e "${YELLOW}=======================================================================${NC}"
+        echo -e "${RED}IMPORTANTE: Estos comandos NO se han ejecutado automáticamente${NC}"
+        echo -e "${YELLOW}=======================================================================${NC}"
+    fi
+
+    echo -e "${GREEN}Continuando con la validación...${NC}"
     echo
 }
 
@@ -758,20 +769,37 @@ select_specific_exercise() {
 
         echo -e "${YELLOW}Ejercicio seleccionado: $selected_exercise${NC}"
 
-        # Si el ejercicio está completado, preguntar si quiere limpiarlo
-        if is_exercise_completed "$selected_exercise" "$level"; then
+        # Verificar si ya existe el ejercicio en rendu/
+        local rendu_exercise_dir="$RENDU_DIR/$selected_exercise"
+        if [ -d "$rendu_exercise_dir" ]; then
             echo
-            echo -e "${GREEN}Este ejercicio ya está completado ✓${NC}"
-            echo -e "${YELLOW}¿Limpiar ejercicio para empezar de 0? (s/N)${NC}"
-            read -p "Respuesta: " clean_confirm
+            echo -e "${CYAN}Ya existe trabajo previo en rendu/$selected_exercise/${NC}"
 
-            if [[ "$clean_confirm" =~ ^[Ss]$ ]]; then
-                # Eliminar carpeta completa en rendu/
-                rm -rf "$RENDU_DIR/$selected_exercise" 2>/dev/null
-                echo -e "${GREEN}✓ Ejercicio limpiado en rendu/$selected_exercise/${NC}"
+            # Mostrar si está completado
+            if is_exercise_completed "$selected_exercise" "$level"; then
+                echo -e "${GREEN}Este ejercicio está completado ✓${NC}"
+            fi
+
+            echo -e "${YELLOW}¿Quieres continuar con el trabajo existente? (S/n)${NC}"
+            read -p "Respuesta: " continue_confirm
+
+            if [[ "$continue_confirm" =~ ^[Nn]$ ]]; then
+                echo -e "${YELLOW}¿Limpiar ejercicio para empezar de 0? (s/N)${NC}"
+                read -p "Respuesta: " clean_confirm
+
+                if [[ "$clean_confirm" =~ ^[Ss]$ ]]; then
+                    # Eliminar carpeta completa en rendu/
+                    rm -rf "$rendu_exercise_dir" 2>/dev/null
+                    echo -e "${GREEN}✓ Ejercicio limpiado en rendu/$selected_exercise/${NC}"
+                    echo -e "${CYAN}Crea tu espacio de trabajo:${NC}"
+                    echo -e "${CYAN}  cd rendu && mkdir $selected_exercise && cd $selected_exercise${NC}"
+                    echo -e "${CYAN}  touch $selected_exercise.c${NC}"
+                else
+                    echo -e "${CYAN}Volviendo al menú principal...${NC}"
+                    return
+                fi
             else
-                echo -e "${CYAN}Operación cancelada. Volviendo al menú principal...${NC}"
-                return
+                echo -e "${GREEN}✓ Continuando con el trabajo existente${NC}"
             fi
         fi
 
