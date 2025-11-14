@@ -160,7 +160,7 @@ int ft_scanf(const char *format, ...)
 	va_end (ap);
 	return ret;
 }
-
+/*
 int main ()
 {
 	int num;
@@ -172,3 +172,4 @@ int main ()
 	printf("Resultado: %d %c %s", num, letra, palabra);
 	return 0;
 }
+	*/

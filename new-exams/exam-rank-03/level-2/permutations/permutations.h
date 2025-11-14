@@ -1,9 +1,7 @@
-#ifndef PERMUTATIONS_H
-#define PERMUTATIONS_H
+#ifndef P_H
+#define P_H
 
-#include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
-
+#include <stdlib.h>
 
 #endif

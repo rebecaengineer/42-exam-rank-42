@@ -1,68 +1,42 @@
-
 #include "permutations.h"
 
-
-
-
-int ft_strlen (char *str)
+void perm (int *cnt, int n, int pos, char *buf)
 {
-    int i = 0;
-    while (str[i])
-        i++;
-    return (i);
-}
-
-void perm (int *cnt, int len, int current_pos, char *str)
-{
-    //Caso base
-
-    if (len == current_pos)
+    if (pos == n)
     {
-        str[len] = '\0';
-        puts(str);
-        return ;
+        buf[n] = '\0';
+        puts(buf);
+        return;
     }
 
-    int c = 0;
-    while (c < 256)
+    for (int i = 0; i < 256; i++)
     {
-        if (cnt[c])
+        if (cnt[i])
         {
-            str[current_pos] = (char)c;
-            --cnt[c];
-            perm (cnt, len, current_pos + 1, str);
-            ++cnt[c];
+            buf[pos] = i;
+            cnt[i]--;
+            perm(cnt, n, pos + 1, buf);
+            cnt[i]++;
         }
-        c++;
     }
-   
 }
-
-
-
-
 
 int main (int ac, char **av)
 {
-    if (ac == 2)
-    {
-        int cnt [256] = {0};
+    int cnt [256] = {0};
+    int n = 0;
 
-        int len = ft_strlen (av[1]);
-        char *str = malloc(sizeof(char) * len + 1);
-        if (!str)
-            return 1;
-        
-        int i = 0;
-        while (i < len)
-        {
-            ++cnt[(unsigned char)av[1][i]];
-            i++;
-        }
+    if (ac != 2 || !av[1][0])
+        return 1;
+    
+    while (av[1][n])
+        cnt[(unsigned char)av[1][n++]]++;
+    
+    char *buf = malloc(n + 1);
+    if (!buf)
+        return 1;
 
-        int current_pos = 0;
-        perm (cnt, len, current_pos ,str);
-        free(str);
-    }
+    perm (cnt, n, 0, buf);
+    free (buf);
     return 0;
 }

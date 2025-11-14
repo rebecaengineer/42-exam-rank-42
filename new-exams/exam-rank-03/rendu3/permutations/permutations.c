@@ -1,107 +1,42 @@
-
-/*********************
- * Algotirmo más común
- */
-
 #include "permutations.h"
 
-int	ft_strlen(char *str)
+void perm (int *cnt, int n, int pos, char *buf)
 {
-	int	len;
+    if (pos == n)
+    {
+        buf[n] = '\0';
+        puts(buf);
+        return;
+    }
 
-	len = 0;
-	while (str[len])
-		len++;
-	return (len);
+    for (int i = 0; i < 256; i++)
+    {
+        if (cnt[i])
+        {
+            buf[pos] = i;
+            cnt[i]--;
+            perm(cnt, n, pos + 1, buf);
+            cnt[i]++;
+        }
+    }
 }
 
-void	ft_putstr(char *str)
+int main (int ac, char **av)
 {
-	write(1, str, ft_strlen(str));
-	write(1, "\n", 1);
-}
+    int cnt [256] = {0};
+    int n = 0;
 
-void	ft_swap(char *a, char *b)
-{
-	char	tmp;
+    if (ac != 2 || !av[1][0])
+        return 1;
+    
+    while (av[1][n])
+        cnt[(unsigned char)av[1][n++]]++;
+    
+    char *buf = malloc(n + 1);
+    if (!buf)
+        return 1;
 
-	tmp = *a;
-	*a = *b;
-	*b = tmp;
-}
-
-void	sort_str(char *str, int len)
-{
-	int	i;
-	int	j;
-
-	i = 0;
-	while (i < len - 1)
-	{
-		j = i + 1;
-		while (j < len)
-		{
-			if (str[i] > str[j])
-				ft_swap(&str[i], &str[j]);
-			j++;
-		}
-		i++;
-	}
-}
-
-int	next_permutation(char *str, int len)
-{
-	int	i;
-	int	j;
-	int	left;
-	int	right;
-	
-	i = len - 2;
-	while (i >= 0 && str[i] >= str[i + 1])
-		i--;
-	if (i < 0)
-		return (0);
-	j = len - 1;
-	while (str[j] <= str[i])
-		j--;
-	ft_swap(&str[i], &str[j]);
-	left = i + 1;
-	right = len - 1;
-	while (left < right)
-	{
-		ft_swap(&str[left], &str[right]);
-		left++;
-		right--;
-	}
-	return (1);
-}
-
-int	main(int ac, char **av)
-{
-	int		i;
-	int		len;
-	char	*str;
-
-	if (ac != 2)
-	{
-		write(1, "\n", 1);
-		return (0);
-	}
-	len = ft_strlen(av[1]);
-	str = malloc(len + 1);
-	if (!str)
-		return (1);
-	i = 0;
-	while (i < len)
-	{
-		str[i] = av[1][i];
-		i++;
-	}
-	str[len] = '\0';
-	sort_str(str, len);
-	ft_putstr(str);
-	while (next_permutation(str, len))
-		ft_putstr(str);
-	free(str);
-	return (0);
+    perm (cnt, n, 0, buf);
+    free (buf);
+    return 0;
 }
