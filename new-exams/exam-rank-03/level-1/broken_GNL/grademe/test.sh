@@ -28,9 +28,14 @@ fi
 # VALIDACIÓN DE FUNCIONES PROHIBIDAS
 echo -e "${CYAN}Verificando funciones prohibidas...${NC}"
 ALLOWED_FUNCS="read|free|malloc"
-FORBIDDEN=$(grep -oE '\b[a-z_][a-z0-9_]*\s*\(' get_next_line.c | \
+
+# Eliminar comentarios multilínea /* */ y comentarios de línea //
+CODE_NO_COMMENTS=$(sed -e ':a' -e 's|/\*.*\*/||g' -e '/\/\*/,/\*\//d' -e 's|//.*||g' get_next_line.c)
+
+FORBIDDEN=$(echo "$CODE_NO_COMMENTS" | grep -oE '\b[a-z_][a-z0-9_]*\s*\(' | \
             grep -v "^main\|^get_next_line\|^ft_\|^str_" | \
             grep -vE "^($ALLOWED_FUNCS)\s*\(" | \
+            grep -vE "^(if|while|return|switch|for|sizeof)\s*\(" | \
             sort -u)
 
 if [ ! -z "$FORBIDDEN" ]; then

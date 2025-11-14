@@ -4,73 +4,113 @@
 
 /*Escribir un byte con todas sus combinaciones*/
 
-
-void	imprimir(int *tablero, int n)
+/*
+void	imprimir(int *pos, int n)
 {
-	int i = 0;
-	while(i < n)
-	{
-		printf("%d", tablero[i]);
-		if(i < n - 1)
-			printf(" ");
-		i++;
-	}
-	printf("\n");
+
+	for (int i = 0; i < n; i++)
+    {
+        if (i > 0)
+            printf(" ");
+        printf("%d", pos[i]);
+    }
+    printf("\n");
 }
+	*/
 
-int	es_valido(int *tablero, int linea, int columna)
+int	pos_libre(int *pos, int fila, int columna)
 {
-	int i = 0;
-	while (i < linea)
+	for (int i = 0; i < fila; i++)
 	{
-		if(tablero[i] == columna || tablero[i] - i == columna - linea || tablero[i] + i == columna + linea)
+		if(pos[i] == columna || pos[i] - i == columna - fila || pos[i] + i == columna + fila)
 			return(0);
-		i++;
 	}
-
-	return (1);
+	return 1;
 }
 
-void	back(int *tablero, int n, int linea)
+void	resolver(int *pos, int n, int fila)
 {
-	if (linea == n)
+	if (fila == n)
 	{
-		imprimir(tablero, n);
+		//imprimir(pos, n);
+		//return;
+
+		//directamnte:
+		for (int i = 0; i < n; i++)
+    	{
+			if (i > 0)
+				printf(" ");
+			printf("%d", pos[i]);
+    	}
+   		printf("\n");
 		return;
 	}
-	int columna = 0;
-	while( columna < n)
+
+	for (int columna = 0; columna < n; columna++)
 	{
-		if (es_valido(tablero, linea, columna))
+		if (pos_libre(pos, fila, columna))
 		{
-			tablero[linea] = columna;
-			back(tablero, n, linea + 1);
+			pos[fila] = columna;
+			resolver(pos, n, fila + 1);
 		}
-		columna++;
 	}
-	return;
 }
 
-int	main(int argc, char **argv)
+int	main(int argc, char **argv)			//Validar → Crear → Backtracking → Liberar
 {
 	if (argc != 2)
-	{
-		fprintf(stderr, "ERROR\n");
-		return(EXIT_FAILURE);
-	}
+		return 1;
+
 	int n = atoi(argv[1]);
 	if (n <= 0)
-	{
-		fprintf(stderr, "Error\n");
-		return (EXIT_FAILURE);
-	}
-	int *tablero = malloc (sizeof(int) * n);
-	if (!tablero)
-	{
-		fprintf(stderr, "ERROR\n"); 
-		return (EXIT_FAILURE);
-	}
-	back(tablero, n, 0);
-	free(tablero);
-	return(EXIT_SUCCESS);
+		return 1;
+
+	int *pos = malloc (sizeof(int) * n);
+	if (!pos)
+	 return 1;
+	
+	resolver(pos, n, 0);
+	free(pos);
+	return(0);
 }
+
+/**
+ * resolver(pos, n, 0);
+            ↑    ↑  ↑
+            │    │  └─ fila inicial (empezamos en fila 0), ¿en que fila estamos trabajando?
+            │    └──── tamaño del tablero (N×N)
+        	└───────── array donde guardamos posiciones, la solución.
+
+			Las columnas se prueban TODAS dentro de la función.
+
+	                resolver(pos, 4, 0)  ← fila = 0
+                    /    |    |    \
+               col=0  col=1 col=2 col=3  ← columnas (bucle for)
+                 ↓      ↓     ↓     ↓
+            resolver(pos, 4, 1)          ← fila = 1 (parámetro)
+            /    |    |    \
+       col=0  col=1 col=2 col=3          ← columnas (bucle for)
+         ↓      ↓     ↓     ↓
+    resolver(pos, 4, 2)                  ← fila = 2 (parámetro)
+
+
+LLAMADA INICIAL:
+resolver(pos, 4, 0)
+         └────────┘
+         Parámetros de ENTRADA
+
+DENTRO DE LA FUNCIÓN:
+for (columna = 0; columna < n; columna++)
+     └─────────────────────────────────┘
+     Variable LOCAL (no se pasa)
+
+LLAMADA RECURSIVA:
+resolver(pos, n, fila + 1)
+                 └──────┘
+                 Solo cambia FILA
+
+
+
+
+
+ */

@@ -25,6 +25,7 @@ echo -e "${CYAN}Verificando funciones prohibidas...${NC}"
 ALLOWED_FUNCS="read|write|strlen|memmem|memmove|malloc|calloc|realloc|free|printf|fprintf|perror"
 FORBIDDEN=$(grep -oE '\b[a-z_][a-z0-9_]*\s*\(' filter.c | \
             grep -v "^main\|^ft_\|^get_\|^process_\|^str_\|^buffer_\|^search_\|^replace_\|^filter_" | \
+            grep -vE "^(if|for|while|switch|return|sizeof)\s*\(" | \
             grep -vE "^($ALLOWED_FUNCS)\s*\(" | \
             sort -u)
 
@@ -116,7 +117,7 @@ fi
 # Test 7: Ejemplo del subject - abc
 echo -e "${YELLOW}Test 7: Ejemplo del subject (abc)${NC}"
 echo 'abcdefaaaabcdeabcabcdabc' | ./filter abc > test_output
-echo '***defaaaa***de******d***' > expected_output
+echo '***defaaa***de******d***' > expected_output
 if diff test_output expected_output >/dev/null; then
     echo -e "${GREEN}✅ Test 7 pasado${NC}"
 else
