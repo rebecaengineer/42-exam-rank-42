@@ -3,11 +3,13 @@ Expected files   : *.c *.h
 Allowed functions: puts, malloc, calloc, realloc, free, write
 ---------------------------------------------------------------
 
-Escribe un programa que imprima todas las permutaciones de una cadena dada como argumento.
+Escribe un programa que imprima todas las permutaciones de una cadena 
+dada como argumento.
 
 Las soluciones deben mostrarse en orden alfabético.
 
-No probaremos tu programa con cadenas que contengan caracteres duplicados (por ejemplo: 'abccd').
+No probaremos tu programa con cadenas que contengan caracteres 
+duplicados (por ejemplo: 'abccd').
 
 Por ejemplo, esto debería funcionar:
 

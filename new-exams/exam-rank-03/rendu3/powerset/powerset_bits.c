@@ -18,7 +18,7 @@ int main (int ac, char **av)
         for (int i = 0; i < k; i++)
         {
             if (mask & (1UL << i))
-                sum += atoi(av[i+2]);
+                sum += atoi(av[2+i]);
         }
         if (sum == target)
         {
@@ -29,7 +29,7 @@ int main (int ac, char **av)
                 {
                     if (!first)
                         printf(" ");
-                    printf ("%s", av[i+2]);
+                    printf ("%s", av[2+i]);
                     first = 0;
                 }
             }
