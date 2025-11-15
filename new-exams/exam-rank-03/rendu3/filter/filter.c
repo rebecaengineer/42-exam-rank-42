@@ -49,7 +49,7 @@ int main (int ac, char **av)
         if (filter == NULL)
         {
             write (1, result + i, total_read - i);
-            break;
+            break;                                  // ✅ Sal del while (no del programa todavía)
         }
         write (1, result + i, filter - (result + i));
 

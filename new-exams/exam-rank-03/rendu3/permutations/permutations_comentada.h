@@ -1,5 +1,5 @@
-#ifndef PERMUTATIONS_BACKTRAKING_H
-# define PERMUTATIONS_BACKTRAKING_H
+#ifndef PERMUTATIONS_COMENTADA_H
+# define PERMUTATIONS_COMENTADA_H
 
 #include <stdio.h>
 #include <string.h>

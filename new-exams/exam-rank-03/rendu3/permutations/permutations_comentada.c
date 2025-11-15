@@ -1,4 +1,4 @@
-#include "permutations_backtraking.h"
+#include "permutations_comentada.h"
 
 void perm(int *cnt, int n, int pos, char *buf)
 {
@@ -8,7 +8,7 @@ void perm(int *cnt, int n, int pos, char *buf)
         puts(buf);
         return;
     }
-    
+
     for (int c = 0; c < 256; c++)
     {
         if (cnt[c])
@@ -24,7 +24,7 @@ void perm(int *cnt, int n, int pos, char *buf)
 int main(int ac, char **av)
 {
     if (ac != 2 || !av[1][0])
-        return (0);
+        return (1);
     
     int cnt[256] = {0};
     int n = 0;
