@@ -31,35 +31,49 @@ cd /home/ubuntu/projects/42-exam-rank-42/new-exams/exam-rank-03/
 exam-rank-03/
 ├── 🎯 exam.sh                 # Script principal de práctica
 ├── 🔧 init.sh                # Generador de entornos de test
-├── 📚 level-1/               # Ejercicios Level 1
+├── 📚 level-1/               # Ejercicios Level 1 (ENUNCIADOS Y TESTS)
 │   ├── filter/
-│   │   ├── 🔒 solutions/      # TUS SOLUCIONES ORIGINALES (INTOCABLES)
-│   │   │   ├── filter.c       # Tu implementación funcional
-│   │   │   └── README.md      # Documentación de tu solución
 │   │   ├── ✅ grademe/        # Tests automáticos
 │   │   │   └── test.sh
-│   │   ├── 📋 subject.txt     # Enunciado del ejercicio
-│   │   └── [filter.c]         # 🎯 ZONA DE PRÁCTICA (aquí trabajas)
-│   ├── scanf/
-│   │   ├── 🔒 solutions/
-│   │   │   ├── ft_scanf.c
-│   │   │   ├── ft_scanf_academico.c
-│   │   │   └── README.md
+│   │   ├── 📋 subject.txt     # Enunciado en inglés
+│   │   └── 📋 subject-es.txt  # Enunciado en español
+│   ├── ft_scanf/
 │   │   ├── ✅ grademe/test.sh
-│   │   └── [ft_scanf.c]       # 🎯 ZONA DE PRÁCTICA
-│   └── broken_gnl/
-│       ├── 🔒 solutions/
-│       │   ├── broken_gnl.c
-│       │   ├── APUNTES_BROKEN_GNL.md
-│       │   └── README.md
+│   │   ├── 📋 subject.txt
+│   │   ├── 📋 subject-es.txt
+│   │   └── 📝 explicaciones.md
+│   └── broken_GNL/
 │       ├── ✅ grademe/test.sh
-│       └── [broken_gnl.c]     # 🎯 ZONA DE PRÁCTICA
-├── 📚 level-2/               # Ejercicios Level 2
+│       ├── 📋 subject.txt
+│       ├── 📋 subject-es.txt
+│       ├── given_code.c       # Código proporcionado
+│       ├── given_code_gnl.c
+│       └── given_code_gnl.h
+├── 📚 level-2/               # Ejercicios Level 2 (ENUNCIADOS Y TESTS)
 │   ├── permutations/grademe/test.sh
 │   ├── powerset/grademe/test.sh
 │   ├── n_queens/grademe/test.sh
 │   ├── rip/grademe/test.sh
 │   └── tsp/grademe/test.sh
+├── 🔒 rendu3/                # SOLUCIONES VALIDADAS (REFERENCIA)
+│   ├── filter/
+│   │   └── filter.c           # Solución funcional
+│   ├── ft_scanf/
+│   │   ├── ft_scanf.c
+│   │   ├── ft_scanf_academico.c
+│   │   └── scanf.c
+│   ├── broken_GNL/
+│   │   ├── broken_GNL.c
+│   │   ├── broken_gnl_academico
+│   │   ├── get_next_line.c
+│   │   ├── get_next_line_comentado.c
+│   │   └── reparired/
+│   ├── permutations/permutations.c
+│   ├── powerset/powerset.c
+│   ├── n_queens/n_queens.c
+│   ├── rip/rip.c
+│   └── tsp/tsp.c
+├── 🎯 rendu/                 # ZONA DE TRABAJO (auto-generada, ignorada en git)
 └── 📊 exam_progress/         # Seguimiento automático de progreso
     ├── level1_done.txt
     └── level2_done.txt
@@ -106,25 +120,31 @@ vim filter.c                 # Crear/editar tu solución
 
 ### **6. Si fallas y necesitas ayuda:**
 ```bash
-cd level-1/filter/solutions/
-cat filter.c                 # Ver tu solución original funcional
-cat README.md               # Ver documentación de tu implementación
+cd rendu3/filter/
+cat filter.c                 # Ver solución funcional validada
+# O revisar las versiones comentadas en rendu3/
 ```
 
 ---
 
 ## 🔒 **Sistema de Protección de Soluciones**
 
-### **Carpetas `solutions/` = ZONA PROTEGIDA**
-- **NUNCA se modifican** automáticamente
-- Contienen tus implementaciones originales que funcionan
-- Son tu **referencia permanente**
-- Incluyen documentación de conceptos implementados
+### **Carpeta `rendu3/` = SOLUCIONES VALIDADAS**
+- Contiene **todas las soluciones funcionales** de los ejercicios
+- Son tu **referencia permanente** cuando te atascas
+- Incluye versiones comentadas y académicas
+- **NO se modifica** durante la práctica (protegida en git)
 
-### **Archivos principales = ZONA DE PRÁCTICA**
-- Donde creas nuevas implementaciones
-- Se pueden sobrescribir cada vez que practiques
-- Permiten experimentar sin miedo
+### **Carpeta `rendu/` = ZONA DE TRABAJO**
+- Se **crea automáticamente** cuando ejecutas `exam.sh`
+- Es donde trabajas los ejercicios durante la práctica
+- **Ignorada en git** (no se sube al repositorio)
+- Se puede limpiar y recrear sin perder nada
+
+### **Carpetas `level-X/` = ENUNCIADOS Y TESTS**
+- Solo contienen subjects (enunciados) y tests
+- **NO contienen soluciones** (están en rendu3/)
+- Scripts de corrección automática en `grademe/`
 
 ---
 
@@ -239,13 +259,14 @@ Asegúrate de estar trabajando en la carpeta correcta del ejercicio, NO en `solu
 ## 📝 **Notas Importantes**
 
 ### **🔒 Protección de datos:**
-- Tus soluciones originales están protegidas en `solutions/`
-- El sistema NUNCA modifica archivos en `solutions/`
+- Tus soluciones validadas están protegidas en `rendu3/`
+- El sistema NUNCA modifica archivos en `rendu3/` durante la práctica
 - Puedes practicar sin miedo a perder tu trabajo
 
 ### **🎯 Zona de trabajo:**
-- Trabaja siempre en la carpeta principal del ejercicio
-- Los archivos aquí SÍ se pueden sobrescribir al practicar
+- El script crea automáticamente `rendu/ejercicio/` cuando practicas
+- Trabaja en esa carpeta temporal
+- Los archivos en `rendu/` NO se suben a git (están ignorados)
 
 ### **📚 Compatibilidad:**
 - Sistema basado en martamakes/42-exam-rank-42
