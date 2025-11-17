@@ -448,9 +448,11 @@ practice_exercises() {
                     echo "1. Validar ejercicio"
                     echo "2. Marcar como completado sin validar"
                     echo "3. Ver subject de nuevo"
-                    echo "4. Siguiente ejercicio"
+                    echo "4. Limpiar ejercicio (empezar de cero)"
+                    echo "5. Siguiente ejercicio"
+                    echo "6. Volver al menú principal"
 
-                    read -p "Opción (1-4): " option
+                    read -p "Opción (1-6): " option
 
                     case $option in
                         1)
@@ -504,6 +506,11 @@ practice_exercises() {
                             # Siguiente ejercicio
                             echo -e "${CYAN}Pasando al siguiente ejercicio...${NC}"
                             break
+                            ;;
+                        6)
+                            # Volver al menú principal
+                            echo -e "${CYAN}Volviendo al menú principal...${NC}"
+                            return
                             ;;
                         *)
                             echo -e "${RED}Opción inválida${NC}"
@@ -569,8 +576,9 @@ practice_level_randomly() {
                     echo "3. Ver subject de nuevo"
                     echo "4. Limpiar ejercicio (empezar de cero)"
                     echo "5. Siguiente ejercicio"
+                    echo "6. Volver al menú principal"
 
-                    read -p "Opción (1-5): " option
+                    read -p "Opción (1-6): " option
 
                     case $option in
                         1)
@@ -624,6 +632,11 @@ practice_level_randomly() {
                             # Siguiente ejercicio
                             echo -e "${CYAN}Pasando al siguiente ejercicio...${NC}"
                             break
+                            ;;
+                        6)
+                            # Volver al menú principal
+                            echo -e "${CYAN}Volviendo al menú principal...${NC}"
+                            return
                             ;;
                         *)
                             echo -e "${RED}Opción inválida${NC}"
