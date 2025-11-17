@@ -1,6 +1,3 @@
-//codigo roto que te dan
-//corregido en los archivos get_next_line.c get_next_line.h
-
 //given code: get_next_line.h
 #ifndef GNL
 # define GNL

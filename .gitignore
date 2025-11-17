@@ -9,6 +9,9 @@ p
 .vscode/
 extra/progress/
 
+# Documentación privada (no subir al fork)
+new-exams/exam-rank-03/docs/
+
 # Ejecutables compilados
 **/filter
 !**/filter/

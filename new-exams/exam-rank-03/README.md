@@ -7,8 +7,6 @@
 
 Este directorio contiene un sistema completo de práctica para el Exam Rank 03 de 42 School, basado en la estructura de [martamakes/42-exam-rank-42](https://github.com/martamakes/42-exam-rank-42).
 
-> 📚 **[Ver Documentación Completa →](docs/README.md)** - Guías, apuntes y recursos de estudio
-
 ---
 
 ## 🚀 **Inicio Rápido**
@@ -33,7 +31,6 @@ cd /home/ubuntu/projects/42-exam-rank-42/new-exams/exam-rank-03/
 exam-rank-03/
 ├── 🎯 exam.sh                 # Script principal de práctica
 ├── 🔧 init.sh                # Generador de entornos de test
-├── 📚 docs/                  # Documentación, guías y apuntes
 ├── 📚 level-1/               # Ejercicios Level 1 (ENUNCIADOS Y TESTS)
 │   ├── filter/
 │   │   ├── ✅ grademe/        # Tests automáticos

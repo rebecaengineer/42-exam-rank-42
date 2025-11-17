@@ -106,49 +106,40 @@ copy_to_rendu3() {
 
 # Función eliminada - el usuario debe crear su estructura en rendu/
 
-# Función para recordatorio de tareas antes de validar (NO EJECUTA COMANDOS)
+# Función para mostrar recordatorio informativo antes de validar
 pre_validation_check() {
     echo
-    echo -e "${YELLOW}=======================================================================${NC}"
-    echo -e "${YELLOW}RECORDATORIO: ¿Qué necesitas hacer antes de validar?${NC}"
-    echo -e "${YELLOW}=======================================================================${NC}"
+    echo -e "${CYAN}═══════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${YELLOW}📋 RECORDATORIO IMPORTANTE - Antes de validar en el examen real:${NC}"
+    echo -e "${CYAN}═══════════════════════════════════════════════════════════════════════${NC}"
+    echo
+    echo -e "  ${GREEN}✓${NC} Asegúrate de haber hecho ${YELLOW}git add${NC} de tus archivos"
+    echo -e "  ${GREEN}✓${NC} Verifica que tu código compila sin errores"
+    echo -e "  ${GREEN}✓${NC} Revisa que cumples todos los requisitos del subject"
+    echo -e "  ${GREEN}✓${NC} En el examen real: ejecuta ${YELLOW}grademe${NC} antes de enviar"
+    echo
+    echo -e "${CYAN}═══════════════════════════════════════════════════════════════════════${NC}"
     echo
 
-    local reminder_list=()
-
+    # Confirmar que el usuario ha leído y quiere continuar
     while true; do
-        read -p "> " user_command
-
-        # Si está vacío, salir del bucle
-        if [ -z "$user_command" ]; then
-            break
-        fi
-
-        # Guardar el comando como recordatorio (NO ejecutarlo)
-        reminder_list+=("$user_command")
-        echo -e "${CYAN}✓ Recordatorio añadido: ${YELLOW}$user_command${NC}"
-        echo -e "${RED}   (NO ejecutado - solo recordatorio)${NC}"
-
-        echo
-        echo -e "${CYAN}¿Algún otro recordatorio? (o ENTER para continuar con la validación)${NC}"
+        read -p "¿Estás listo para validar? (y/n): " confirm
+        case $confirm in
+            [Yy]* )
+                echo -e "${GREEN}Procediendo con la validación...${NC}"
+                echo
+                return 0
+                ;;
+            [Nn]* )
+                echo -e "${YELLOW}Validación cancelada. Puedes seguir trabajando en tu solución.${NC}"
+                echo
+                return 1
+                ;;
+            * )
+                echo -e "${RED}Por favor responde 'y' (sí) o 'n' (no)${NC}"
+                ;;
+        esac
     done
-
-    # Mostrar resumen de recordatorios si hay alguno
-    if [ ${#reminder_list[@]} -gt 0 ]; then
-        echo
-        echo -e "${YELLOW}=======================================================================${NC}"
-        echo -e "${YELLOW}RECORDATORIOS GUARDADOS (ejecutar manualmente después):${NC}"
-        echo -e "${YELLOW}=======================================================================${NC}"
-        for cmd in "${reminder_list[@]}"; do
-            echo -e "${CYAN}  • $cmd${NC}"
-        done
-        echo -e "${YELLOW}=======================================================================${NC}"
-        echo -e "${RED}IMPORTANTE: Estos comandos NO se han ejecutado automáticamente${NC}"
-        echo -e "${YELLOW}=======================================================================${NC}"
-    fi
-
-    echo -e "${GREEN}Continuando con la validación...${NC}"
-    echo
 }
 
 # Función para validar ejercicio con test específico
@@ -205,7 +196,11 @@ validate_exercise() {
     fi
 
     # NUEVA FUNCIONALIDAD: Preguntar si hay tareas pendientes antes de validar
-    pre_validation_check
+    if ! pre_validation_check; then
+        # Usuario canceló la validación
+        cd "$original_dir"
+        return 1
+    fi
 
     # Copiar todos los archivos .c y .h de rendu/ejercicio/ al directorio del ejercicio para testing
     cp "$rendu_exercise_dir"/*.c "$absolute_path/" 2>/dev/null
@@ -493,9 +488,8 @@ practice_exercises() {
                             ;;
                         4)
                             # Limpiar ejercicio (empezar de cero)
-                            echo -e "${YELLOW}¿Estás seguro de que quieres limpiar este ejercicio? (s/N)${NC}"
-                            read -p "Respuesta: " confirm
-                            if [[ "$confirm" =~ ^[Ss]$ ]]; then
+                            read -p "¿Estás seguro de que quieres limpiar este ejercicio? (y/n): " confirm
+                            if [[ "$confirm" =~ ^[Yy]$ ]]; then
                                 # Eliminar carpeta completa en rendu/
                                 rm -rf "$RENDU_DIR/$selected_exercise" 2>/dev/null
                                 echo -e "${GREEN}✓ Ejercicio limpiado. Puedes empezar de cero.${NC}"
@@ -614,9 +608,8 @@ practice_level_randomly() {
                             ;;
                         4)
                             # Limpiar ejercicio (empezar de cero)
-                            echo -e "${YELLOW}¿Estás seguro de que quieres limpiar este ejercicio? (s/N)${NC}"
-                            read -p "Respuesta: " confirm
-                            if [[ "$confirm" =~ ^[Ss]$ ]]; then
+                            read -p "¿Estás seguro de que quieres limpiar este ejercicio? (y/n): " confirm
+                            if [[ "$confirm" =~ ^[Yy]$ ]]; then
                                 # Eliminar carpeta completa en rendu/
                                 rm -rf "$RENDU_DIR/$selected_exercise" 2>/dev/null
                                 echo -e "${GREEN}✓ Ejercicio limpiado. Puedes empezar de cero.${NC}"
@@ -698,8 +691,7 @@ show_progress() {
 
 # Función para limpiar archivos de progreso
 clean_progress_files() {
-    echo -e "${YELLOW}¿Estás seguro de que quieres limpiar todo el progreso? (y/N)${NC}"
-    read -p "Respuesta: " response
+    read -p "¿Estás seguro de que quieres limpiar todo el progreso? (y/n): " response
 
     if [[ "$response" =~ ^[Yy]$ ]]; then
         > "$LEVEL1_DONE"
@@ -780,14 +772,12 @@ select_specific_exercise() {
                 echo -e "${GREEN}Este ejercicio está completado ✓${NC}"
             fi
 
-            echo -e "${YELLOW}¿Quieres continuar con el trabajo existente? (S/n)${NC}"
-            read -p "Respuesta: " continue_confirm
+            read -p "¿Quieres continuar con el trabajo existente? (y/n): " continue_confirm
 
             if [[ "$continue_confirm" =~ ^[Nn]$ ]]; then
-                echo -e "${YELLOW}¿Limpiar ejercicio para empezar de 0? (s/N)${NC}"
-                read -p "Respuesta: " clean_confirm
+                read -p "¿Limpiar ejercicio para empezar de 0? (y/n): " clean_confirm
 
-                if [[ "$clean_confirm" =~ ^[Ss]$ ]]; then
+                if [[ "$clean_confirm" =~ ^[Yy]$ ]]; then
                     # Eliminar carpeta completa en rendu/
                     rm -rf "$rendu_exercise_dir" 2>/dev/null
                     echo -e "${GREEN}✓ Ejercicio limpiado en rendu/$selected_exercise/${NC}"
@@ -853,9 +843,8 @@ select_specific_exercise() {
                     ;;
                 4)
                     # Limpiar ejercicio (empezar de cero)
-                    echo -e "${YELLOW}¿Estás seguro de que quieres limpiar este ejercicio? (s/N)${NC}"
-                    read -p "Respuesta: " confirm
-                    if [[ "$confirm" =~ ^[Ss]$ ]]; then
+                    read -p "¿Estás seguro de que quieres limpiar este ejercicio? (y/n): " confirm
+                    if [[ "$confirm" =~ ^[Yy]$ ]]; then
                         # Eliminar archivos en rendu/
                         rm -f "$RENDU_DIR/$selected_exercise"/*.c "$RENDU_DIR/$selected_exercise"/*.h 2>/dev/null
                         echo -e "${GREEN}✓ Ejercicio limpiado. Puedes empezar de cero.${NC}"
