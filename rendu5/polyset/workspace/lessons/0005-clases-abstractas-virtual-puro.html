@@ -1,0 +1,103 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Clases abstractas y funciones virtuales puras — Polyset 0005</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0005</span>
+  </p>
+  <h1 class="lesson-title">Clases abstractas y funciones virtuales puras</h1>
+  <p class="objective">
+    Objetivo: leer <code>virtual ... = 0</code>, entender para qué sirve una clase abstracta, y
+    saber que la "abstractidad" se propaga hasta que alguien implementa <strong>todas</strong>
+    las funciones puras.
+  </p>
+
+  <h2>La sintaxis, por piezas</h2>
+  <pre class="code">virtual void insert (int) = 0;</pre>
+
+  <table style="width:100%; border-collapse:collapse; font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+    <tr style="border-bottom:1px solid var(--rule);">
+      <th style="text-align:left; padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Fragmento</th>
+      <th style="text-align:left; padding:var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Significa</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>virtual</code></td><td style="padding:var(--sp-1) 0;">La llamada se resuelve en <strong>runtime</strong> según el tipo real del objeto, no en compilación según el tipo del puntero.</td></tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>void insert(int)</code></td><td style="padding:var(--sp-1) 0;">Firma normal: nombre, parámetros, retorno.</td></tr>
+    <tr><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>= 0</code></td><td style="padding:var(--sp-1) 0;"><strong>Pure specifier</strong> — no hay cuerpo aquí. No es una asignación ni un valor.</td></tr>
+  </table>
+
+  <h2>Por qué existe: un contrato común</h2>
+  <p>
+    Sin clase abstracta, el código que usa un bag tendría que conocer cada tipo concreto por
+    separado. Con ella, cualquier código puede tratar "algo que es un <code>searchable_bag</code>"
+    sin saber si por dentro hay un array o un árbol — ya lo estás haciendo en tu propio
+    <code>main.cpp</code>:
+  </p>
+
+  <span class="code-tab">05/level-1/polyset/main.cpp</span>
+  <pre class="code">searchable_bag *t = new searchable_tree_bag;
+searchable_bag *a = new searchable_array_bag;
+...
+t->has(atoi(argv[i]));   // no sabe ni le importa qué hay por dentro
+a->has(atoi(argv[i]));   // mismo código, dos implementaciones distintas</pre>
+
+  <p>
+    Eso es lo que vas a formalizar en el Bloque 7 (polimorfismo). Y en el Bloque 9, <code>set</code>
+    está escrito enteramente contra <code>searchable_bag&amp;</code> — no necesita saber qué bag
+    concreto envuelve.
+  </p>
+
+  <h2>La abstractidad se propaga</h2>
+  <p>
+    Una clase es abstracta si define <strong>o hereda</strong> al menos una función virtual pura
+    sin implementación final. No basta con implementar 3 de 4 — con que quede una sola pendiente,
+    la clase entera sigue siendo abstracta.
+  </p>
+
+  <div class="cross-section">
+    <div class="band" data-tier="danger">
+      <div class="band-label"><code>bag</code></div>
+      <div class="band-body">4 funciones <code>= 0</code>, ninguna implementada. Abstracta. <code>bag b;</code> no compila.</div>
+    </div>
+    <div class="band" data-tier="danger">
+      <div class="band-label"><code>array_bag</code><br>(hipotético, sin <code>clear()</code>)</div>
+      <div class="band-body">Implementa 3 de 4. <code>clear()</code> sigue siendo <code>= 0</code>, heredada tal cual. <strong>Sigue abstracta.</strong> <code>array_bag a;</code> tampoco compilaría.</div>
+    </div>
+    <div class="band" data-tier="safe">
+      <div class="band-label">clase que implementa<br>las 4 (tu <code>array_bag</code> real)</div>
+      <div class="band-body">Ninguna función pura queda sin cuerpo. <strong>Concreta.</strong> <code>array_bag a;</code> compila.</div>
+    </div>
+  </div>
+
+  <p>
+    Punteros y referencias al tipo abstracto sí son válidos incluso cuando no lo es la
+    instanciación directa: <code>array_bag* p;</code> compila siempre — declarar un puntero no
+    crea un objeto.
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint</span>
+    <p>
+      <strong>Pregunta:</strong> si <code>array_bag</code> no implementara <code>clear()</code>,
+      ¿seguiría siendo abstracta? ¿Compilaría <code>array_bag a;</code>?
+    </p>
+    <p>
+      <strong>Tu respuesta:</strong> seguiría abstracta — basta una función pura sin implementar,
+      da igual que el resto estén bien. <code>array_bag a;</code> no compilaría, pero
+      <code>array_bag* p;</code> sí. Una clase más derivada que implemente <code>clear()</code>
+      podría volver a ser concreta.
+    </p>
+    <p>Completo, con matices que no se pidieron. Bloque 5 confirmado.</p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuente primaria: <a href="https://en.cppreference.com/w/cpp/language/abstract_class">cppreference — Abstract class</a>.
+      Código real: <code>05/level-1/polyset/bag.hpp</code>, <code>05/level-1/polyset/main.cpp</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

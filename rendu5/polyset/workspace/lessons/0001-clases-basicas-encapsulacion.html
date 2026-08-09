@@ -1,0 +1,130 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Clases básicas y encapsulación — Polyset 0001</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0001</span>
+  </p>
+  <h1 class="lesson-title">Clases básicas y encapsulación</h1>
+  <p class="objective">
+    Objetivo de esta lección: entender <code>public</code> / <code>protected</code> / <code>private</code>
+    lo bastante bien como para justificar, con el código real de <code>array_bag</code>, por qué
+    un dato vive en una banda de acceso y no en otra.
+  </p>
+
+  <h2>Qué es una clase</h2>
+  <p>
+    Una <code>class</code> agrupa datos (variables miembro) y funciones que operan sobre esos datos
+    (métodos), con control de quién puede tocar qué. En C puro tenías <code>struct</code> — solo datos —
+    y funciones sueltas que la recibían como parámetro: nada impedía que cualquier función tocara
+    cualquier campo. C++ añade la posibilidad de <strong>esconder</strong> el estado interno y solo
+    dejarlo tocar a través de un contrato controlado. Eso es encapsulación.
+  </p>
+  <p>
+    <code>class</code> es privada por defecto; <code>struct</code> es pública por defecto — esa es la
+    única diferencia real entre ambas palabras clave en C++. Los métodos se declaran en el
+    <code>.hpp</code> y se implementan en el <code>.cpp</code> con <code>::</code>, el operador de
+    resolución de ámbito: <code>array_bag::array_bag()</code> se lee "el constructor de la clase
+    <code>array_bag</code>".
+  </p>
+
+  <h2>El corte transversal de acceso</h2>
+  <p>
+    Encapsulación no es una única puerta cerrada — son tres bandas concéntricas, cada una con una
+    regla de visibilidad distinta:
+  </p>
+
+  <div class="cross-section">
+    <div class="band" data-tier="public">
+      <div class="band-label">public</div>
+      <div class="band-body">
+        Visible desde <strong>cualquier sitio</strong>: la propia clase, sus hijas, y código externo.
+        Es el contrato — lo único que quien usa la clase necesita conocer.
+      </div>
+    </div>
+    <div class="band" data-tier="protected">
+      <div class="band-label">protected</div>
+      <div class="band-body">
+        Visible para la clase <strong>y para quien hereda de ella</strong>. Cerrado para el resto
+        del mundo. Es la banda que usa <code>array_bag</code> para <code>data</code> y <code>size</code>.
+      </div>
+    </div>
+    <div class="band" data-tier="private">
+      <div class="band-label">private</div>
+      <div class="band-body">
+        Visible <strong>solo dentro de la propia clase</strong> — ni siquiera las clases hijas
+        pueden tocarlo directamente. El nivel por defecto de <code>class</code>.
+      </div>
+    </div>
+  </div>
+
+  <h2>Cómo aparece en tu código</h2>
+  <p>
+    <code>bag.hpp</code> todavía no tiene datos — es un contrato puro (volveremos a esto en el Bloque 5,
+    clases abstractas). Donde sí hay estado real es en <code>array_bag</code>:
+  </p>
+
+  <span class="code-tab">05/level-1/polyset/array_bag.hpp</span>
+  <pre class="code">class array_bag : virtual public bag
+{
+ <span class="mark">protected</span>:
+    int *data;
+    int size;
+
+ public:
+    array_bag();
+    array_bag(const array_bag &amp;);
+    array_bag &amp;operator=(const array_bag &amp;other);
+    ~array_bag();
+    ...
+};</pre>
+
+  <p>
+    Y el motivo concreto de por qué <code>protected</code> y no <code>private</code> está en la clase
+    hija, no en <code>array_bag</code> mismo:
+  </p>
+
+  <span class="code-tab">rendu5/polyset/searchable_array_bag.cpp</span>
+  <pre class="code">bool searchable_array_bag::has(int val) const {
+    for (int i = 0; i &lt; <span class="mark">this-&gt;size</span>; i++) {
+        if (<span class="mark">this-&gt;data</span>[i] == val)
+            return true;
+    }
+    return false;
+}</pre>
+
+  <p>
+    <code>has()</code> está definida en <code>searchable_array_bag</code> — la clase <strong>hija</strong> —
+    y lee <code>this-&gt;data</code> y <code>this-&gt;size</code> directamente, sin pasar por ningún
+    getter. Si esos dos campos fueran <code>private</code> en <code>array_bag</code>, esta función
+    ni siquiera compilaría.
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint</span>
+    <p>
+      <strong>Pregunta:</strong> ¿por qué <code>data</code>/<code>size</code> están en
+      <code>protected</code> y no en <code>private</code>, si el objetivo de la encapsulación es
+      "esconder los datos"?
+    </p>
+    <p>
+      <strong>Tu respuesta:</strong> porque son heredados por <code>searchable_array_bag</code>, que
+      necesita accederlos directamente.
+    </p>
+    <p>
+      Correcta, y razonada sobre el código real — no una definición de memoria. Bloque 1 confirmado.
+    </p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuente primaria: <a href="https://en.cppreference.com/w/cpp/language/access">cppreference — Access specifiers</a>.
+      Código real: <code>05/level-1/polyset/array_bag.hpp</code>, <code>rendu5/polyset/searchable_array_bag.cpp</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

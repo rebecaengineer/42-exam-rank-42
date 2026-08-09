@@ -1,0 +1,103 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Herencia virtual y diamond problem — Polyset 0006</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0006</span>
+  </p>
+  <h1 class="lesson-title">Herencia virtual y diamond problem</h1>
+  <p class="objective">
+    Objetivo: entender por qué <code>array_bag</code> y <code>searchable_bag</code> heredan
+    <code>virtual public bag</code> — y por qué hace falta en <strong>las dos</strong>, no en una.
+  </p>
+
+  <h2>Mismo keyword, significado distinto</h2>
+  <p>
+    <code>virtual</code> ya lo viste en el Bloque 5, sobre una función (<code>virtual ... = 0</code>
+    → dispatch dinámico). Aquí aparece sobre una <strong>herencia</strong>, y significa otra cosa:
+  </p>
+
+  <pre class="code">class array_bag : virtual public bag</pre>
+
+  <table style="width:100%; border-collapse:collapse; font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+    <tr style="border-bottom:1px solid var(--rule);">
+      <th style="text-align:left; padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Fragmento</th>
+      <th style="text-align:left; padding:var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Significa</th>
+    </tr>
+    <tr><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>virtual</code> (en herencia)</td><td style="padding:var(--sp-1) 0;">"Si más abajo del árbol dos caminos vuelven a converger en <code>bag</code>, que compartan <strong>una sola</strong> copia, no dos."</td></tr>
+  </table>
+
+  <h2>El problema</h2>
+  <pre class="code">              bag
+             /   \
+       array_bag   searchable_bag
+             \   /
+     searchable_array_bag</pre>
+  <p>
+    <code>searchable_array_bag</code> llega a <code>bag</code> por dos caminos. Sin
+    <code>virtual</code> en <strong>ambas</strong> herencias, tendría dos subobjetos
+    <code>bag</code> independientes — no uno compartido.
+  </p>
+
+  <div class="cross-section">
+    <div class="band" data-tier="danger">
+      <div class="band-label">sin virtual<br>(en cualquiera de las dos)</div>
+      <div class="band-body">
+        <code>bag *b = &amp;sab;</code> es <strong>ambiguo</strong> — hay dos subobjetos
+        <code>bag</code> candidatos, uno vía <code>array_bag</code> y otro vía
+        <code>searchable_bag</code>. No compila sin desambiguar explícitamente
+        (<code>static_cast&lt;array_bag*&gt;(&amp;sab)</code>), y aun así <code>b1 != b2</code>.
+      </div>
+    </div>
+    <div class="band" data-tier="safe">
+      <div class="band-label"><code>virtual public bag</code><br>en las dos</div>
+      <div class="band-body">
+        Un único subobjeto <code>bag</code> compartido. <code>bag *b = &amp;sab;</code> compila
+        directo, sin ambigüedad — exactamente lo que necesita el Bloque 7 (polimorfismo).
+      </div>
+    </div>
+  </div>
+
+  <h2>Bonus: quién construye la base virtual</h2>
+  <p>
+    Solo la clase <strong>más derivada</strong> es responsable de inicializar la base virtual —
+    ni <code>array_bag</code> ni <code>searchable_bag</code>, sino <code>searchable_array_bag</code>
+    (a quien nadie hereda). Por eso <code>bag</code> ni aparece en su lista de inicialización:
+  </p>
+  <span class="code-tab">rendu5/polyset/searchable_array_bag.cpp</span>
+  <pre class="code">searchable_array_bag::searchable_array_bag() : array_bag() {}</pre>
+  <p>
+    Como <code>bag</code> no tiene constructor propio (el compilador genera uno implícito
+    trivial), esto funciona sin más. Si <code>bag</code> tuviera un constructor con parámetros
+    obligatorios, <code>searchable_array_bag</code> tendría que llamarlo explícitamente aquí —
+    no <code>array_bag</code>.
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint</span>
+    <p>
+      <strong>Pregunta:</strong> sin <code>virtual</code> en ninguna de las dos herencias,
+      ¿compila <code>bag *b = &amp;sab;</code>?
+    </p>
+    <p>
+      <strong>Tu respuesta:</strong> no — ambiguo, dos subobjetos <code>bag</code> candidatos.
+      Demostraste la desambiguación manual (<code>static_cast</code> por cada camino,
+      <code>b1 != b2</code>) y por qué <code>virtual</code> en ambas herencias colapsa eso en un
+      único subobjeto compartido.
+    </p>
+    <p>Completo y preciso. Bloque 6 confirmado.</p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuente primaria: <a href="https://en.cppreference.com/w/cpp/language/derived_class">cppreference — Derived classes</a>
+      (sección de bases virtuales). Código real: <code>05/level-1/polyset/array_bag.hpp</code>,
+      <code>searchable_bag.hpp</code>, <code>rendu5/polyset/searchable_array_bag.{hpp,cpp}</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

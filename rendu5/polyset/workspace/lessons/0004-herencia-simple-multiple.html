@@ -1,0 +1,136 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Herencia simple y múltiple — Polyset 0004</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0004</span>
+  </p>
+  <h1 class="lesson-title">Herencia simple y múltiple</h1>
+  <p class="objective">
+    Objetivo: leer con soltura la lista de inicialización (<code>: array_bag(other)</code>) y
+    saber qué falla si no reenvías el argumento a la clase base.
+  </p>
+
+  <h2>searchable_array_bag es dos cosas a la vez</h2>
+  <p>
+    <code>class searchable_array_bag : public array_bag, public searchable_bag</code> hereda de
+    <strong>dos</strong> clases simultáneamente — no reemplaza nada, combina: se queda con
+    <code>data</code>/<code>size</code>/<code>insert</code>/<code>print</code>/<code>clear</code>
+    de <code>array_bag</code> (implementación) y cumple el contrato <code>has()</code> de
+    <code>searchable_bag</code> (interfaz). Por eso su <code>private:</code> está vacío — no
+    necesita datos propios, ya los tiene por herencia.
+  </p>
+
+  <div class="cross-section">
+    <div class="band" data-tier="public">
+      <div class="band-label">parte<br><code>array_bag</code></div>
+      <div class="band-body">
+        <code>data</code>, <code>size</code>, <code>insert()</code>, <code>print()</code>,
+        <code>clear()</code> — la implementación que <code>searchable_array_bag</code> reutiliza
+        tal cual.
+      </div>
+    </div>
+    <div class="band" data-tier="protected">
+      <div class="band-label">parte<br><code>searchable_bag</code></div>
+      <div class="band-body">
+        El contrato <code>has(int) const = 0</code> — <code>searchable_array_bag</code> lo
+        cumple con su propia implementación (búsqueda lineal sobre la parte <code>array_bag</code>).
+      </div>
+    </div>
+  </div>
+
+  <h2>La lista de inicialización — léela por trozos</h2>
+  <p>
+    Antes de ejecutar el cuerpo <code>{}</code> del constructor de la clase hija, C++ tiene que
+    construir sus subobjetos base. Eso es lo que controla la sintaxis tras <code>:</code> — se
+    llama <strong>lista de inicialización de miembros y bases</strong>, no
+    <code>std::initializer_list</code> (son cosas distintas con nombre parecido).
+  </p>
+
+  <span class="code-tab">05/level-1/polyset/searchable_array_bag.cpp</span>
+  <pre class="code">searchable_array_bag::searchable_array_bag() : array_bag() {}</pre>
+
+  <table style="width:100%; border-collapse:collapse; font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+    <tr style="border-bottom:1px solid var(--rule);">
+      <th style="text-align:left; padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Fragmento</th>
+      <th style="text-align:left; padding:var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Significa</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>searchable_array_bag::</code></td><td style="padding:var(--sp-1) 0;">"Esto pertenece a la clase <code>searchable_array_bag</code>."</td></tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>searchable_array_bag()</code></td><td style="padding:var(--sp-1) 0;">Su constructor sin parámetros.</td></tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>: array_bag()</code></td><td style="padding:var(--sp-1) 0;">"Construye primero la parte <code>array_bag</code> con su constructor sin argumentos."</td></tr>
+    <tr><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>{}</code></td><td style="padding:var(--sp-1) 0;">Cuerpo del constructor de la hija — vacío, no hace falta nada más.</td></tr>
+  </table>
+
+  <p>
+    Orden real de construcción: 1) bases virtuales, 2) bases directas (izquierda a derecha), 3)
+    miembros no estáticos (orden de declaración), 4) cuerpo del constructor.
+  </p>
+
+  <h2>Dónde importa de verdad: el constructor de copia</h2>
+
+  <div class="cross-section">
+    <div class="band" data-tier="danger">
+      <div class="band-label"><code>: array_bag()</code><br>(el bug)</div>
+      <div class="band-body">
+        Llama al constructor <strong>por defecto</strong> de <code>array_bag</code>, no al de
+        copia. <code>other</code> queda ahí, sin usarse. El objeto nuevo se construye sin error
+        de compilación — pero con <code>data = NULL</code>, <code>size = 0</code>: un
+        "constructor de copia" que no copia.
+      </div>
+    </div>
+    <div class="band" data-tier="safe">
+      <div class="band-label"><code>: array_bag(other)</code><br>(lo real)</div>
+      <div class="band-body">
+        Reenvía <code>other</code> al constructor de <strong>copia</strong> de
+        <code>array_bag</code>, que reserva memoria nueva y copia cada entero (Bloque 2). El
+        objeto nuevo tiene su propio <code>data</code>, con los valores de <code>other</code>.
+      </div>
+    </div>
+  </div>
+
+  <p>
+    <code>other</code> es <code>const searchable_array_bag&amp;</code>, pero puede pasarse donde
+    se espera un <code>const array_bag&amp;</code> — un <code>searchable_array_bag</code> es
+    también, públicamente, un <code>array_bag</code>.
+  </p>
+
+  <h2>Regla práctica para el examen</h2>
+  <p>
+    Lee cualquier constructor derivado así:
+  </p>
+  <pre class="code">Hija::Hija(argumentos) : Base(argumentos_para_Base) {
+    // código adicional de Hija
+}</pre>
+  <p>
+    → "Antes de entrar en las llaves, construye la parte <code>Base</code> llamando a este
+    constructor concreto." Las bases se inicializan <strong>antes</strong> de que se ejecute el
+    cuerpo del constructor derivado, siempre.
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint</span>
+    <p>
+      <strong>Pregunta:</strong> ¿qué falla si el constructor de copia usa
+      <code>: array_bag()</code> en vez de <code>: array_bag(other)</code>?
+    </p>
+    <p>
+      <strong>Tu respuesta:</strong> no hay error de compilación; el objeto se construye
+      correctamente pero queda vacío — <code>data = NULL</code>, <code>size = 0</code> — en vez
+      de ser una copia de <code>other</code>. El parámetro está ahí pero no se usa.
+    </p>
+    <p>Exacto. Bloque 4 confirmado.</p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuente primaria: <a href="https://en.cppreference.com/w/cpp/language/constructor">cppreference — Constructors and member initializer lists</a>
+      (no confundir con <code>std::initializer_list</code>, página distinta pese al nombre parecido).
+      Código real: <code>rendu5/polyset/searchable_array_bag.cpp</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

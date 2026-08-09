@@ -1,0 +1,82 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Plan de implementación — Polyset</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>referencia · Modo 2</span>
+  </p>
+  <h1 class="lesson-title">Plan de implementación — Polyset</h1>
+  <p class="objective">
+    Cheat sheet para releer bajo presión de examen: cómo leer <strong>cualquier</strong> subject
+    de 42 y sacar un orden de construcción — aplicado aquí a Polyset como ejemplo ya resuelto.
+  </p>
+
+  <h2>1. Contrato del subject</h2>
+  <table style="width:100%; border-collapse:collapse; font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim);">Expected files</td><td style="padding:var(--sp-1) 0;"><code>searchable_array_bag</code>, <code>searchable_tree_bag</code>, <code>set</code> (.hpp/.cpp)</td></tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim);">Allowed functions</td><td style="padding:var(--sp-1) 0;">ninguna restricción especial — solo POO/C++</td></tr>
+    <tr><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim);">Restricción explícita</td><td style="padding:var(--sp-1) 0;">"orthodox canonical form. Don't forget the const" — literal del subject</td></tr>
+  </table>
+
+  <h2>2. Dado vs. pedido</h2>
+  <div class="cross-section">
+    <div class="band" data-tier="protected">
+      <div class="band-label">Dado por 42<br>(no tocar)</div>
+      <div class="band-body"><code>bag.hpp</code>, <code>searchable_bag.hpp</code>, <code>array_bag.{hpp,cpp}</code>, <code>tree_bag.{hpp,cpp}</code>, <code>main.cpp</code></div>
+    </div>
+    <div class="band" data-tier="safe">
+      <div class="band-label">A implementar</div>
+      <div class="band-body"><code>searchable_array_bag</code>, <code>searchable_tree_bag</code> (First Part) · <code>set</code> (Second Part)</div>
+    </div>
+  </div>
+
+  <h2>3. Grafo de dependencias de compilación</h2>
+  <pre class="code">[Dados — ya compilan]
+bag.hpp ──┬── array_bag.hpp/.cpp
+          └── searchable_bag.hpp
+tree_bag.hpp/.cpp
+        │
+        ▼
+[First Part — independientes entre sí]
+searchable_array_bag : public array_bag, public searchable_bag
+searchable_tree_bag  : public tree_bag,  public searchable_bag
+        │
+        ▼
+[Second Part — necesita al menos una de arriba para probarse]
+set : compone searchable_bag&  (NO hereda — Bloque 9)
+        │
+        ▼
+[main.cpp usa las TRES a la vez — no compila hasta que existan todas]</pre>
+
+  <h2>4. Orden recomendado y por qué</h2>
+  <ol style="padding-left: 1.2rem;">
+    <li><strong>searchable_array_bag</strong> — mismo patrón que <code>array_bag</code> (Bloques 1-3), menor superficie nueva.</li>
+    <li><strong>searchable_tree_bag</strong> — mismo esqueleto; <code>has()</code> recorre el árbol con <code>node*</code>, no <code>node**</code> (Bloque 8).</li>
+    <li><strong>set</strong> — "Second Part" explícita; necesita algo real que envolver para probarse.</li>
+    <li><strong>main.cpp + grademe/test.sh</strong> — incluye build con <code>-fsanitize=address,undefined</code>: pilla un double free (Bloque 2/3) que a simple vista no se ve.</li>
+  </ol>
+
+  <h2>5. Por cada clase</h2>
+  <p><strong>Contrato</strong> (qué exige la abstracta) → <strong>esqueleto</strong> (firmas vacías, que compile) → <strong>implementación mínima</strong> → <strong>verificar</strong>:</p>
+  <pre class="code">g++ -std=c++98 -Wall -Wextra -Werror -c searchable_array_bag.cpp</pre>
+  <p>Flags reales de <code>grademe/test.sh</code> de este repo — no inventados. No esperar a tener las tres clases para pillar errores de sintaxis/tipos.</p>
+
+  <h2>Plantilla para un subject nuevo (examen)</h2>
+  <p>El mismo proceso, en cualquier ejercicio que no hayas visto:</p>
+  <ol style="padding-left: 1.2rem;">
+    <li>Expected files / allowed functions / qué está dado vs. qué se pide / restricciones explícitas.</li>
+    <li>Tabla dado vs. pedido.</li>
+    <li>Grafo: qué necesita existir para que lo siguiente compile/enlace.</li>
+    <li>Orden: lo más simple o lo que ya dominas primero; lo que depende de más cosas, al final.</li>
+    <li>Por pieza: contrato → esqueleto → implementación → compilar suelto antes de integrar.</li>
+  </ol>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuente: <code>05/level-1/polyset/subject.txt</code>, <code>05/level-1/polyset/grademe/test.sh</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta referencia.</p>
+  </div>
+
+</article>

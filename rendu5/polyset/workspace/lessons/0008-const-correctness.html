@@ -1,0 +1,98 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Const-correctness — Polyset 0008</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0008</span>
+  </p>
+  <h1 class="lesson-title">Const-correctness</h1>
+  <p class="objective">
+    Objetivo: leer <code>const</code> tras la firma de un método como parte del contrato, no
+    decoración — y conectar por qué obliga a usar <code>node*</code> en vez de <code>node**</code>
+    cuando solo lees.
+  </p>
+
+  <h2>La sintaxis, por piezas</h2>
+  <pre class="code">bool has(int val) const {</pre>
+
+  <table style="width:100%; border-collapse:collapse; font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+    <tr style="border-bottom:1px solid var(--rule);">
+      <th style="text-align:left; padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Fragmento</th>
+      <th style="text-align:left; padding:var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;">Significa</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>bool has(int val)</code></td><td style="padding:var(--sp-1) 0;">Firma normal del método.</td></tr>
+    <tr><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;"><code>const</code> (tras los paréntesis)</td><td style="padding:var(--sp-1) 0;">Parte de la firma, no cosmética: "este método promete no modificar ningún miembro del objeto". Cambia el tipo de <code>this</code>.</td></tr>
+  </table>
+
+  <p>
+    Modelo mental (no es sintaxis válida para escribir, pero así se comporta): un método
+    <code>const</code> recibe implícitamente <code>const Clase* this</code> en vez de
+    <code>Clase* this</code>. Por eso dentro no puedes reasignar miembros ni llamar a métodos
+    no-<code>const</code> sobre <code>this</code>.
+  </p>
+
+  <h2>Por qué <code>has()</code> usa <code>node*</code> y no <code>node**</code></h2>
+  <p>
+    Ya lo razonaste tú mismo, conectándolo con el Bloque 2. Compara las dos funciones:
+  </p>
+
+  <div class="cross-section">
+    <div class="band" data-tier="protected">
+      <div class="band-label"><code>tree_bag::insert()</code><br>(no const)</div>
+      <div class="band-body">
+        Usa <code>node** current = &amp;tree;</code>. Necesita la <strong>dirección
+        modificable</strong> de un puntero del árbol (<code>tree</code>, <code>left</code> o
+        <code>right</code>) para poder reasignarlo: <code>*current = new node(val);</code>
+        cambia el árbol de verdad.
+      </div>
+    </div>
+    <div class="band" data-tier="public">
+      <div class="band-label"><code>searchable_tree_bag::has()</code><br>(const)</div>
+      <div class="band-body">
+        Usa <code>node* current = this-&gt;tree;</code>. Solo avanza una <strong>copia
+        local</strong> del puntero (<code>current = current-&gt;l;</code>) — no reasigna ningún
+        enlace del árbol real. Con <code>this</code> constante, ni siquiera podrías tomar
+        <code>&amp;this-&gt;tree</code> para modificarlo.
+      </div>
+    </div>
+  </div>
+
+  <h2>Objeto const → solo métodos const</h2>
+  <p>
+    Ya lo usas en tu propio <code>main.cpp</code>:
+  </p>
+  <span class="code-tab">05/level-1/polyset/main.cpp</span>
+  <pre class="code">const searchable_array_bag tmp(static_cast&lt;searchable_array_bag &amp;&gt;(*a));
+tmp.print();   // compila: print() es const
+tmp.has(1);    // compila: has() es const
+<span class="mark">// tmp.insert(42);  // NO compilaría: insert() no es const</span></pre>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint</span>
+    <p>
+      <strong>Pregunta:</strong> ¿por qué <code>insert()</code> usa <code>node**</code> y
+      <code>has()</code> solo <code>node*</code>? ¿Qué tiene que ver <code>const</code>?
+    </p>
+    <p>
+      <strong>Tu respuesta:</strong> <code>insert()</code> necesita modificar a qué apunta un
+      puntero del árbol (requiere su dirección, de ahí el doble puntero). <code>has()</code>,
+      siendo <code>const</code>, solo lee — avanza una copia local del puntero sin tocar el
+      árbol real. Modelaste correctamente <code>this</code> como <code>const Clase*</code> dentro
+      del método.
+    </p>
+    <p>Conectaste const-correctness con el razonamiento de punteros del Bloque 2 sin que se te pidiera. Bloque 8 confirmado.</p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuentes primarias: <a href="https://en.cppreference.com/w/cpp/language/member_functions">cppreference — Non-static member functions</a>,
+      <a href="https://isocpp.org/wiki/faq/const-correctness">isocpp.org — Const correctness FAQ</a>.
+      Código real: <code>rendu5/polyset/searchable_tree_bag.cpp</code>, <code>05/level-1/polyset/main.cpp</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

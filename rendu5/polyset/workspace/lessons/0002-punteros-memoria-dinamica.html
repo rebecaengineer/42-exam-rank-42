@@ -1,0 +1,108 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Punteros y memoria dinámica — Polyset 0002</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0002</span>
+  </p>
+  <h1 class="lesson-title">Punteros y memoria dinámica</h1>
+  <p class="objective">
+    Objetivo: entender por qué el constructor de copia de <code>array_bag</code> hace una copia
+    <strong>profunda</strong> del array, y qué crash concreto provoca no hacerlo.
+  </p>
+
+  <h2><code>new[]</code> / <code>delete[]</code> — el par obligatorio</h2>
+  <p>
+    En C ya usabas <code>malloc</code>/<code>free</code> (Libft, get_next_line). En C++,
+    <code>array_bag</code> usa su equivalente: <code>new int[size]</code> reserva un array en el
+    heap, <code>delete[] data</code> lo libera. Misma idea, sintaxis distinta — y, como
+    <code>malloc</code>/<code>free</code>, cada <code>new[]</code> necesita <strong>exactamente
+    un</strong> <code>delete[]</code>, ni cero ni dos.
+  </p>
+
+  <h2>Copia superficial vs. copia profunda</h2>
+  <p>
+    El bug no está en <code>new</code>/<code>delete</code> en sí — está en qué hace el
+    constructor de copia con el puntero <code>data</code> que ya existe en <code>src</code>.
+  </p>
+
+  <div class="cross-section">
+    <div class="band" data-tier="danger">
+      <div class="band-label">shallow copy<br><span class="dim" style="font-weight:400">(el bug)</span></div>
+      <div class="band-body">
+        <code>data = src.data;</code> — copia la <strong>dirección</strong>, no el contenido.
+        <code>src</code> y la copia terminan compartiendo el mismo array. Ninguno sabe que el
+        otro existe.
+      </div>
+    </div>
+    <div class="band" data-tier="safe">
+      <div class="band-label">deep copy<br><span class="dim" style="font-weight:400">(lo real)</span></div>
+      <div class="band-body">
+        <code>data = new int[size]</code> + bucle que copia elemento a elemento. Cada objeto
+        tiene su <strong>propio</strong> array — nada compartido, nada que pisarse.
+      </div>
+    </div>
+  </div>
+
+  <h2>Cómo aparece en tu código</h2>
+
+  <span class="code-tab">05/level-1/polyset/array_bag.cpp</span>
+  <pre class="code">array_bag::array_bag(const array_bag &amp;src) {
+    size = src.size;
+    <span class="mark">data = new int[size];</span>
+    for (int i = 0; i &lt; size; i++) {
+        data[i] = src.data[i];
+    }
+}</pre>
+
+  <p>
+    Y el motivo de por qué esto es obligatorio está en el destructor, no en el constructor de
+    copia:
+  </p>
+
+  <span class="code-tab">05/level-1/polyset/array_bag.cpp</span>
+  <pre class="code">array_bag::~array_bag() {
+    if (data != NULL) {
+        <span class="mark">delete[] data;</span>
+        data = NULL;
+    }
+}</pre>
+
+  <p>
+    Si <code>src</code> y la copia comparten <code>data</code>, cuando el primer objeto se
+    destruye libera esa memoria. Cuando el segundo se destruye —en cualquier orden—
+    <code>delete[]</code> se ejecuta <strong>otra vez sobre la misma dirección ya liberada</strong>:
+    <strong>double free</strong>, comportamiento indefinido, típicamente un crash o corrupción
+    del heap.
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint</span>
+    <p>
+      <strong>Pregunta:</strong> ¿qué fallo concreto provocaría <code>data = src.data;</code> en
+      vez de la copia profunda?
+    </p>
+    <p>
+      <strong>Primera aproximación:</strong> "apuntaría al espacio de memoria... si algo modifica
+      ese espacio, data también se modificaría" — correcto en espíritu (aliasing, estado
+      compartido), pero no era el fallo concreto que pedía la pregunta.
+    </p>
+    <p>
+      <strong>Tras la pista</strong> (mirar <code>~array_bag()</code>): "intentarías borrar dos
+      veces el mismo espacio de memoria al que llamas desde 2 punteros" — exacto. Double free.
+      Bloque 2 confirmado.
+    </p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuente primaria: <a href="https://en.cppreference.com/w/cpp/language/rule_of_three">cppreference — Rule of three</a>.
+      Código real: <code>05/level-1/polyset/array_bag.cpp</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

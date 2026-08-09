@@ -1,0 +1,101 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Forma canónica ortodoxa — Polyset 0003</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0003</span>
+  </p>
+  <h1 class="lesson-title">Forma canónica ortodoxa</h1>
+  <p class="objective">
+    Objetivo: entender por qué <code>operator=</code> necesita dos guardas independientes, y por
+    qué 42 exige un constructor por defecto además del Rule of Three.
+  </p>
+
+  <h2>Qué es</h2>
+  <p>
+    Término de James Coplien (<em>Advanced C++: Programming Styles and Idioms</em>, 1992): toda
+    clase que gestiona un recurso implementa, <strong>como unidad</strong>, cuatro miembros —
+    constructor por defecto, constructor de copia, <code>operator=</code> y destructor. El Rule
+    of Three de C++ solo exige los últimos tres (gestión de recursos); 42 añade el constructor
+    por defecto por una razón distinta: sin él no puedes declarar arrays ni contenedores de esa
+    clase — el compilador necesita poder construir un elemento sin argumentos.
+  </p>
+
+  <h2><code>operator=</code>: dos guardas independientes</h2>
+  <p>
+    Ya dominas el constructor de copia y el destructor (Bloque 2). Lo nuevo de este bloque son
+    las dos trampas de <code>operator=</code> — cada una protege contra un fallo distinto.
+  </p>
+
+  <span class="code-tab">05/level-1/polyset/array_bag.cpp</span>
+  <pre class="code">array_bag &amp;array_bag::operator=(const array_bag &amp;src) {
+    <span class="mark">if (this != &amp;src) {</span>
+        <span class="mark">if (data != NULL) {
+            delete[] data;
+            data = NULL;
+        }</span>
+        size = src.size;
+        data = new int[size];
+        for (int i = 0; i &lt; size; i++) {
+            data[i] = src.data[i];
+        }
+    }
+    return *this;
+}</pre>
+
+  <div class="cross-section">
+    <div class="band" data-tier="danger">
+      <div class="band-label">sin guarda de<br>autoasignación</div>
+      <div class="band-body">
+        <code>a = a;</code> → <code>this == &amp;src</code>. <code>delete[] data</code> destruye
+        el origen antes de copiarlo — <code>src.data</code> queda apuntando a memoria liberada.
+        El bucle final copia valores <strong>sin inicializar</strong> (UB), no los originales:
+        se pierden.
+      </div>
+    </div>
+    <div class="band" data-tier="danger">
+      <div class="band-label">sin liberar<br>el dato viejo</div>
+      <div class="band-body">
+        <code>a = b;</code> (objetos distintos). <code>data = new int[size]</code> sobreescribe
+        el puntero de <code>a</code> sin haber liberado el array anterior — nadie conserva esa
+        dirección. <strong>Memory leak</strong>: no crashea, se acumula con cada asignación.
+      </div>
+    </div>
+  </div>
+
+  <h2>Por qué el constructor por defecto no es sobre memoria</h2>
+  <p>
+    A diferencia de las dos trampas anteriores, esto no es gestión de recursos — es
+    instanciabilidad. <code>array_bag arr[10];</code> o construir un <code>std::vector&lt;array_bag&gt;</code>
+    necesitan poder crear un elemento sin pasarle argumentos. Sin constructor por defecto, esas
+    declaraciones ni compilan.
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoints</span>
+    <p>
+      <strong>Autoasignación:</strong> trazaste <code>delete[]</code> → <code>data = NULL</code>
+      → <code>new[]</code> → bucle, línea a línea, incluyendo que leer los <code>int</code> sin
+      inicializar es UB. Sin pistas.
+    </p>
+    <p>
+      <strong>Fuga de memoria:</strong> identificaste que sobreescribir <code>data</code> sin
+      liberar el array anterior pierde esa dirección para siempre, y que el destructor solo
+      libera el último array. Sin pistas.
+    </p>
+    <p>Bloque 3 confirmado — razonamiento transferido de Bloque 2 sin reexplicación.</p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuentes primarias: <a href="https://en.cppreference.com/w/cpp/language/rule_of_three">cppreference — Rule of three</a>,
+      <a href="https://crysol.org/recipe/2008-09-03/la-forma-cannica-ortodoxa.html">CRySoL — La Forma Canónica Ortodoxa</a>.
+      Código real: <code>05/level-1/polyset/array_bag.cpp</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

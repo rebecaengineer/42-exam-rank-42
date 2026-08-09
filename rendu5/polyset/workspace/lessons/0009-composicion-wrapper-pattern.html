@@ -1,0 +1,104 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Composición / wrapper pattern (set) — Polyset 0009</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0009 · última del árbol</span>
+  </p>
+  <h1 class="lesson-title">Composición / wrapper pattern (set)</h1>
+  <p class="objective">
+    Objetivo: entender por qué <code>sb(other.sb)</code> — copiar solo el puntero — es correcto
+    en <code>set</code>, cuando la misma línea era el bug del Bloque 2/3 en <code>array_bag</code>.
+  </p>
+
+  <h2>HAS-A, no IS-A</h2>
+  <p>
+    Todo lo anterior (Bloques 4-7) era herencia: <code>searchable_array_bag</code> <em>es un</em>
+    <code>array_bag</code>. <code>set</code> es distinto — <strong>no hereda</strong> de
+    <code>searchable_bag</code>, solo guarda un puntero a uno. Eso es composición: <code>set</code>
+    <em>tiene un</em> <code>searchable_bag*</code>, no <em>es un</em> <code>searchable_bag</code>.
+  </p>
+
+  <h2>La misma línea, dos conclusiones opuestas</h2>
+  <p>
+    Lo que decide si copiar un puntero es un bug o el diseño correcto no es el puntero en sí —
+    es <strong>quién posee</strong> el recurso al que apunta.
+  </p>
+
+  <table style="width:100%; border-collapse:collapse; font-size:var(--fs-sm); margin-bottom:var(--sp-4);">
+    <tr style="border-bottom:1px solid var(--rule);">
+      <th style="text-align:left; padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;"></th>
+      <th style="text-align:left; padding:var(--sp-1) var(--sp-2) var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;"><code>array_bag::data</code></th>
+      <th style="text-align:left; padding:var(--sp-1) 0; color:var(--ink-dim); font-family:var(--font-display); text-transform:uppercase; font-size:var(--fs-xs); letter-spacing:.05em;"><code>set::sb</code></th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;">¿Quién creó el recurso?</td><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;">El propio objeto</td><td style="padding:var(--sp-1) 0;">Código externo</td></tr>
+    <tr style="border-bottom:1px solid var(--rule);"><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;">¿El destructor hace <code>delete</code>?</td><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;">Sí</td><td style="padding:var(--sp-1) 0;">No</td></tr>
+    <tr><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;">¿Copiar solo la dirección?</td><td style="padding:var(--sp-1) var(--sp-2) var(--sp-1) 0;">Bug — double free</td><td style="padding:var(--sp-1) 0;">Correcto — vista compartida intencional</td></tr>
+  </table>
+
+  <div class="cross-section">
+    <div class="band" data-tier="danger">
+      <div class="band-label"><code>array_bag</code><br>(dueño del recurso)</div>
+      <div class="band-body">
+        <code>data = src.data;</code> → dos objetos creen poseer el mismo array. Ambos
+        destructores hacen <code>delete[] data</code> → double free (Bloque 2/3).
+      </div>
+    </div>
+    <div class="band" data-tier="safe">
+      <div class="band-label"><code>set</code><br>(vista, no dueño)</div>
+      <div class="band-body">
+        <code>sb(other.sb);</code> → dos <code>set</code> apuntan al mismo
+        <code>searchable_bag</code> externo, a propósito. Ningún destructor de <code>set</code>
+        hace <code>delete</code> — no hay conflicto de propiedad porque <code>set</code> nunca
+        reclama la propiedad.
+      </div>
+    </div>
+  </div>
+
+  <h2>El riesgo cambia, no desaparece</h2>
+  <p>
+    Sin dueño compartido no hay double free — pero aparece el riesgo inverso: si el objeto que
+    posee el <code>searchable_bag</code> muere antes que el <code>set</code> que lo envuelve,
+    <code>sb</code> queda colgando (<em>dangling pointer</em>):
+  </p>
+  <pre class="code">set* s;
+{
+    searchable_array_bag bag;
+    s = new set(bag);
+} // bag se destruye aquí — s->sb queda inválido
+s->insert(42); // usa un puntero colgante</pre>
+  <p>
+    El contrato implícito de <code>set</code>: el <code>searchable_bag</code> envuelto debe vivir
+    al menos tanto como cualquier <code>set</code> que lo use. En C++ moderno esto se documentaría
+    marcando <code>sb</code> como puntero <strong>no-propietario</strong> (regla R.3 de las C++
+    Core Guidelines: "a raw pointer is non-owning" — el patrón exacto que ya implementaste).
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint final</span>
+    <p>
+      <strong>Pregunta:</strong> misma línea de código (copiar un puntero), Bloque 2/3 dice que
+      es un bug, Bloque 9 dice que es correcto. ¿Qué cambia?
+    </p>
+    <p>
+      <strong>Tu respuesta:</strong> quién posee el recurso. <code>array_bag</code> lo crea y
+      debe liberarlo — copiar el puntero produce doble propiedad accidental. <code>set</code>
+      nunca lo posee — copiar el puntero es una vista compartida intencional. Identificaste
+      además, sin que se pidiera, el riesgo que sí introduce este patrón: dangling pointer si el
+      dueño externo muere primero.
+    </p>
+    <p><strong>Árbol de dependencias de Polyset completo — 9 de 9 bloques confirmados.</strong></p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuente primaria: <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines">C++ Core Guidelines — R.3: a raw pointer is non-owning</a>.
+      Código real: <code>rendu5/polyset/{set.hpp,set.cpp}</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>

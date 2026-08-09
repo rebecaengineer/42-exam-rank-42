@@ -1,0 +1,94 @@
+<link rel="stylesheet" href="../assets/style.css">
+<title>Polimorfismo con punteros a clase base — Polyset 0007</title>
+
+<article class="sheet">
+
+  <p class="eyebrow">
+    <span>42-tutor</span><span class="sep">/</span><span>polyset</span><span class="sep">/</span><span>lección 0007</span>
+  </p>
+  <h1 class="lesson-title">Polimorfismo con punteros a clase base</h1>
+  <p class="objective">
+    Objetivo: distinguir tipo estático vs. dinámico, y entender por qué destruir un objeto
+    derivado a través de un puntero base sin destructor virtual es UB, no "solo un leak".
+  </p>
+
+  <h2>Tipo estático vs. tipo dinámico</h2>
+  <p>
+    Ya lo usas en tu propio <code>main.cpp</code>, aunque no lo hubiéramos nombrado hasta ahora:
+  </p>
+  <span class="code-tab">05/level-1/polyset/main.cpp</span>
+  <pre class="code">searchable_bag *t = new searchable_tree_bag;
+searchable_bag *a = new searchable_array_bag;
+t->has(atoi(argv[i]));</pre>
+  <p>
+    <code>t</code> tiene tipo <strong>estático</strong> <code>searchable_bag*</code> (lo que
+    declaraste) pero tipo <strong>dinámico</strong> <code>searchable_tree_bag</code> (lo que
+    realmente hay en memoria). Como <code>has()</code> es <code>virtual</code> (Bloque 5), la
+    llamada se resuelve en runtime según el tipo dinámico.
+  </p>
+
+  <h2>El mismo mecanismo, pero al destruir</h2>
+  <p>
+    <code>bag.hpp</code> y <code>searchable_bag.hpp</code> no declaran destructor — C++ genera
+    uno implícito, <strong>no virtual</strong>. Eso importa en el momento de destruir un objeto
+    a través de un puntero base.
+  </p>
+
+  <div class="cross-section">
+    <div class="band" data-tier="danger">
+      <div class="band-label">destructor NO virtual<br>(estado actual de <code>bag</code>)</div>
+      <div class="band-body">
+        <code>delete t;</code> con <code>t</code> de tipo <code>searchable_bag*</code> apuntando
+        a un <code>searchable_tree_bag</code> real: <strong>comportamiento indefinido</strong>.
+        No es "se ejecuta solo el destructor base" de forma garantizada — eso es el resultado
+        <em>frecuente</em> en la práctica, pero el estándar no lo promete. La cadena
+        <code>~searchable_array_bag() → ~array_bag() → delete[] data</code> puede no arrancar en
+        absoluto: fuga del array, o peor.
+      </div>
+    </div>
+    <div class="band" data-tier="safe">
+      <div class="band-label">destructor virtual<br>(el arreglo)</div>
+      <div class="band-body">
+        <code>virtual ~bag() {}</code> en la base. Al ser <code>virtual</code>, la propiedad se
+        hereda — no hace falta redeclararlo en cada hija (aunque hacerlo explícito no molesta).
+        <code>delete t;</code> ahora dispara la cadena completa desde el tipo dinámico real hasta
+        <code>~array_bag()</code>, que sí libera <code>data</code>.
+      </div>
+    </div>
+  </div>
+
+  <h2>Regla de oro</h2>
+  <p>
+    Si una clase tiene al menos una función virtual y se va a usar a través de punteros o
+    referencias base (polimórficamente), su destructor debe ser <code>virtual</code>. Es un caso
+    especial: aquí <code>virtual</code> no es sobre dispatch de comportamiento (Bloque 5) sino
+    sobre garantizar que la cadena de destrucción completa se ejecute.
+  </p>
+
+  <hr class="hr">
+
+  <div class="case-file">
+    <span class="tag">Caso resuelto — checkpoint</span>
+    <p>
+      <strong>Pregunta:</strong> si se añadiera <code>delete t; delete a;</code> a <code>main.cpp</code>,
+      ¿qué destructores se ejecutan? ¿Se libera <code>data</code> correctamente?
+    </p>
+    <p>
+      <strong>Tu respuesta:</strong> comportamiento indefinido, no una garantía de "solo el
+      destructor base". La liberación de <code>data</code> no está garantizada — fuga en el caso
+      común, potencialmente peor. Propusiste correctamente <code>virtual ~bag()</code> como
+      arreglo, notando que la virtualidad se hereda.
+    </p>
+    <p>Distinción entre UB y resultado práctico frecuente — la parte que la mayoría se salta. Bloque 7 confirmado.</p>
+  </div>
+
+  <div class="lesson-footer">
+    <p class="source">
+      Fuentes primarias: <a href="https://en.cppreference.com/w/cpp/language/delete">cppreference — delete expression</a>,
+      <a href="https://en.cppreference.com/w/cpp/language/destructor">cppreference — Destructors</a>.
+      Código real: <code>05/level-1/polyset/{bag,searchable_bag}.hpp</code>, <code>main.cpp</code> (este repo).
+    </p>
+    <p class="ask-me">¿Algo no queda claro? Pregúntamelo directamente — soy tu profe, no solo esta lección.</p>
+  </div>
+
+</article>
